@@ -4,7 +4,7 @@ import {ArrowLeft,ArrowUpRight,FileText,Mail,Phone,ReceiptText,WalletCards,LockK
 import AppShell from "../../../components/AppShell";
 import styles from "./page.module.css";
 
-type Client={id:string;name:string;company:string|null;email:string|null;phone:string|null;gstin:string|null;billing_address:string|null;place_of_supply:string|null;preferred_currency:string|null};
+type Client={id:string;name:string;company:string|null;email:string|null;phone:string|null;gstin:string|null;billing_address:any;place_of_supply:string|null;preferred_currency:string|null;portal_enabled?:boolean;portal_slug?:string|null;allow_profile_edit?:boolean;show_projects?:boolean;show_documents?:boolean};
 type Invoice={id:string;document_number:string;status:string;issue_date:string;due_date:string|null;currency:string;clients?:{name?:string|null};draft_payload?:{totals?:{totalMinor?:string}}};
 
 const money=(minor?:string,currency="INR")=>new Intl.NumberFormat("en-IN",{style:"currency",currency,maximumFractionDigits:2}).format(Number(minor??0)/100);
