@@ -2,7 +2,7 @@
 import {useEffect,useMemo,useState} from "react";
 import {ArrowDownRight,ArrowUpRight,CircleDollarSign,Plus,ReceiptText,WalletCards,AlertCircle,TrendingUp} from "lucide-react";
 import AppShell from "../components/AppShell";
-import {allocationByDocument,confirmedPaymentTotal,documentBalance} from "../lib/financial/ledger";
+import {allocationByDocument,confirmedPaymentTotal,documentBalance,creditAllocationByDocument} from "../lib/financial/ledger";
 import styles from "./page.module.css";
 
 type Invoice={id:string;document_number:string;status:string;issue_date:string;due_date:string|null;draft_payload?:{totals?:{totalMinor?:string}};clients?:{name?:string|null}};
@@ -15,17 +15,17 @@ const line=(d:string)=><svg viewBox="0 0 180 46" preserveAspectRatio="none"><pat
 function Metric({icon:Icon,label,value,meta,tone,path}:{icon:any;label:string;value:string;meta:string;tone:string;path:string}){return <article className={styles.metric}><div className={styles.metricTop}><span className={styles.icon+" "+styles[tone]}><Icon size={15}/></span><span>{label}</span></div><b>{value}</b><small>{meta}</small><div className={styles.mini+" "+styles[tone]}>{line(path)}</div></article>}
 
 export default function Home(){
- const [rows,setRows]=useState<Invoice[]>([]),[payments,setPayments]=useState<Payment[]>([]),[expenses,setExpenses]=useState<Expense[]>([]);
+ const [rows,setRows]=useState<Invoice[]>([]),[credits,setCredits]=useState<any[]>([]),[payments,setPayments]=useState<Payment[]>([]),[expenses,setExpenses]=useState<Expense[]>([]);
  useEffect(()=>{const w=localStorage.getItem("finbooksos.workspace");if(!w)return;Promise.all([
   fetch("/api/documents?workspaceId="+encodeURIComponent(w)+"&type=INVOICE").then(r=>r.json()),
   fetch("/api/payments?workspaceId="+encodeURIComponent(w)).then(r=>r.json()),
-  fetch("/api/expenses?workspaceId="+encodeURIComponent(w)).then(r=>r.json())
- ]).then(([d,p,e])=>{setRows(d.data??[]);setPayments(p.data??[]);setExpenses(e.data??[])}).catch(()=>{})},[]);
- const allocations=useMemo(()=>allocationByDocument(payments),[payments]);
+  fetch("/api/credit-notes?workspaceId="+encodeURIComponent(w)).then(r=>r.json()),\n  fetch("/api/expenses?workspaceId="+encodeURIComponent(w)).then(r=>r.json())
+ ]).then(([d,p,c,e])=>{setRows(d.data??[]);setPayments(p.data??[]);setCredits(c.data??[]);setExpenses(e.data??[])}).catch(()=>{})},[]);
+ const allocations=useMemo(()=>allocationByDocument(payments),[payments]); const creditAllocations=useMemo(()=>creditAllocationByDocument(credits.flatMap((x:any)=>x.credit_note_applications??[])),[credits]);
  const receivables=useMemo(()=>rows.filter(r=>!["DRAFT","CANCELLED","VOID"].includes(r.status)),[rows]);
  const billed=useMemo(()=>receivables.reduce((s,r)=>s+total(r),0),[receivables]);
  const paid=useMemo(()=>confirmedPaymentTotal(payments),[payments]);
- const outstanding=useMemo(()=>receivables.reduce((s,r)=>s+documentBalance(r,allocations),0),[receivables,allocations]);
+ const outstanding=useMemo(()=>receivables.reduce((s,r)=>s+documentBalance(r,allocations,creditAllocations),0),[receivables,allocations]);
  const overdueRows=useMemo(()=>receivables.filter(r=>r.due_date&&new Date(r.due_date+"T23:59:59")<new Date()&&documentBalance(r,allocations)>0),[receivables,allocations]);
  const overdue=useMemo(()=>overdueRows.reduce((s,r)=>s+documentBalance(r,allocations),0),[overdueRows,allocations]);
  const dueSoon=useMemo(()=>receivables.filter(r=>{if(!r.due_date||documentBalance(r,allocations)<=0)return false;const due=new Date(r.due_date+"T23:59:59");return due>=new Date()&&due<=new Date(Date.now()+7*86400000)}).reduce((s,r)=>s+documentBalance(r,allocations),0),[receivables,allocations]);
