@@ -4,7 +4,7 @@ export async function getDocuments(workspaceId:string){
   const supabase=await createClient();
   const {data,error}=await supabase
     .from("documents")
-    .select("id,document_number,type,status,issue_date,due_date,currency,current_version,updated_at,draft_payload,clients(name,email)")
+    .select("id,client_id,document_number,type,status,issue_date,due_date,currency,current_version,updated_at,draft_payload,clients(name,email)")
     .eq("workspace_id",workspaceId)
     .order("updated_at",{ascending:false});
   if(error) throw new Error(error.message);
