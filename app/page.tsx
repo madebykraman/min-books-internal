@@ -17,7 +17,7 @@ function Metric({icon:Icon,label,value,meta,tone,path}:{icon:any;label:string;va
 export default function Home(){
  const [rows,setRows]=useState<Invoice[]>([]),[payments,setPayments]=useState<Payment[]>([]),[expenses,setExpenses]=useState<Expense[]>([]);
  useEffect(()=>{const w=localStorage.getItem("finbooksos.workspace");if(!w)return;Promise.all([
-  fetch("/api/documents?workspaceId="+encodeURIComponent(w)).then(r=>r.json()),
+  fetch("/api/documents?workspaceId="+encodeURIComponent(w)+"&type=INVOICE").then(r=>r.json()),
   fetch("/api/payments?workspaceId="+encodeURIComponent(w)).then(r=>r.json()),
   fetch("/api/expenses?workspaceId="+encodeURIComponent(w)).then(r=>r.json())
  ]).then(([d,p,e])=>{setRows(d.data??[]);setPayments(p.data??[]);setExpenses(e.data??[])}).catch(()=>{})},[]);
