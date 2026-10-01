@@ -5,13 +5,13 @@ import {ArrowRight,FileText,Package,Search,Users,WalletCards,X} from "lucide-rea
 import {useRouter} from "next/navigation";
 import styles from "./GlobalSearch.module.css";
 
-type Result={id:string;title:string;meta:string;href:string;kind:"Invoice"|"Client"|"Catalog"|"Payment"};
+type Result={id:string;title:string;meta:string;href:string;kind:"Invoice"|"Client"|"Catalog"|"Payment"|"Action"};
 type Invoice={id:string;document_number:string;status:string;clients?:{name?:string|null}};
 type Client={id:string;name:string;email?:string|null;company?:string|null};
 type Product={id:string;name:string;unit_price_minor?:number;currency?:string};
 type Payment={id:string;amount_minor:number;currency:string;method:string;reference?:string|null;clients?:{name?:string|null}};
 
-const icons={Invoice:FileText,Client:Users,Catalog:Package,Payment:WalletCards};
+const icons={Invoice:FileText,Client:Users,Catalog:Package,Payment:WalletCards,Action:ArrowRight};
 
 export default function GlobalSearch(){
  const router=useRouter();
@@ -29,7 +29,7 @@ export default function GlobalSearch(){
  useEffect(()=>{
    if(!open)return;
    const query=q.trim().toLowerCase();
-   if(query.length<2){setData([]);setLoading(false);return}
+   if(query.length<2){setData(query?[]:[{id:"new-invoice",title:"New invoice",meta:"Create a draft invoice",href:"/invoices/new",kind:"Action"},{id:"new-quote",title:"New quote",meta:"Create a commercial quote",href:"/quotes/new",kind:"Action"},{id:"new-client",title:"New client",meta:"Add a billing relationship",href:"/clients/new",kind:"Action"},{id:"record-payment",title:"Record payment",meta:"Open the collection ledger",href:"/payments",kind:"Action"},{id:"reports",title:"Open reports",meta:"Review financial reporting",href:"/reports",kind:"Action"}]);setLoading(false);return}
    const timer=window.setTimeout(async()=>{
      const w=localStorage.getItem("finbooksos.workspace");if(!w)return;
      setLoading(true);
@@ -51,7 +51,7 @@ export default function GlobalSearch(){
    return()=>window.clearTimeout(timer);
  },[q,open]);
 
- const groups=useMemo(()=>["Invoice","Client","Catalog","Payment"].map(kind=>({kind,rows:data.filter(x=>x.kind===kind)})).filter(x=>x.rows.length),[data]);
+ const groups=useMemo(()=>["Action","Invoice","Client","Catalog","Payment"].map(kind=>({kind,rows:data.filter(x=>x.kind===kind)})).filter(x=>x.rows.length),[data]);
  const flat=groups.flatMap(g=>g.rows);
  function go(item:Result){setOpen(false);setQ("");router.push(item.href)}
  return <>
@@ -60,7 +60,7 @@ export default function GlobalSearch(){
      <section className={styles.dialog} role="dialog" aria-modal="true" aria-label="Global search">
        <div className={styles.inputRow}><Search size={16}/><input ref={inputRef} value={q} onChange={e=>setQ(e.target.value)} onKeyDown={e=>{if(e.key==="ArrowDown"){e.preventDefault();setActive(a=>Math.min(a+1,Math.max(flat.length-1,0)))}else if(e.key==="ArrowUp"){e.preventDefault();setActive(a=>Math.max(a-1,0))}else if(e.key==="Enter"&&flat[active])go(flat[active])}} placeholder="Search invoices, clients, catalog, payments…" autoComplete="off"/><button onClick={()=>setOpen(false)}><X size={15}/></button></div>
        <div className={styles.results}>
-         {!q.trim()&&<div className={styles.empty}><Search size={18}/><b>Search the workspace</b><span>Invoices, clients, catalog items and recorded payments.</span></div>}
+         {!q.trim()&&<div className={styles.empty}><Search size={18}/><b>Search the workspace</b><span>New invoice, quote, client, payment, reports — or search the workspace.</span></div>}
          {q.trim()&&q.trim().length<2&&<div className={styles.empty}><span>Type at least 2 characters.</span></div>}
          {loading&&<div className={styles.empty}><span>Searching workspace…</span></div>}
          {!loading&&q.trim().length>=2&&!flat.length&&<div className={styles.empty}><b>No matches</b><span>Try an invoice number, client name or catalog item.</span></div>}
