@@ -6,7 +6,7 @@ import {useRouter} from "next/navigation";
 import styles from "./GlobalSearch.module.css";
 
 type Result={id:string;title:string;meta:string;href:string;kind:"Invoice"|"Client"|"Catalog"|"Payment"|"Action"};
-type Invoice={id:string;document_number:string;status:string;clients?:{name?:string|null}};
+type Invoice={id:string;document_number:string;type?:string;status:string;clients?:{name?:string|null}};
 type Client={id:string;name:string;email?:string|null;company?:string|null};
 type Product={id:string;name:string;unit_price_minor?:number;currency?:string};
 type Payment={id:string;amount_minor:number;currency:string;method:string;reference?:string|null;clients?:{name?:string|null}};
@@ -41,7 +41,7 @@ export default function GlobalSearch(){
        ]);
        const [i,c,p,r]=await Promise.all([ir.json(),cr.json(),pr.json(),rr.json()]);
        const out:Result[]=[];
-       (i.data??[]).forEach((x:Invoice)=>{const text=(x.document_number+" "+(x.clients?.name??"")+" "+x.status).toLowerCase();if(text.includes(query))out.push({id:x.id,title:x.document_number,meta:(x.clients?.name??"Unassigned")+" · "+x.status,href:"/invoices/"+x.id,kind:"Invoice"})});
+       (i.data??[]).forEach((x:Invoice)=>{const text=(x.document_number+" "+(x.clients?.name??"")+" "+x.status).toLowerCase();if(text.includes(query))out.push({id:x.id,title:x.document_number,meta:(x.clients?.name??"Unassigned")+" · "+x.status,href:x.type==="QUOTE"?"/quotes/"+x.id:"/invoices/"+x.id,kind:"Invoice"})});
        (c.data??[]).forEach((x:Client)=>{const text=(x.name+" "+(x.email??"")+" "+(x.company??"")).toLowerCase();if(text.includes(query))out.push({id:x.id,title:x.name,meta:x.email??x.company??"Client",href:"/clients",kind:"Client"})});
        (p.data??[]).forEach((x:Product)=>{if(x.name.toLowerCase().includes(query))out.push({id:x.id,title:x.name,meta:"Catalog item",href:"/catalog",kind:"Catalog"})});
        (r.data??[]).forEach((x:Payment)=>{const text=((x.clients?.name??"")+" "+x.method+" "+(x.reference??"")).toLowerCase();if(text.includes(query))out.push({id:x.id,title:new Intl.NumberFormat("en-IN",{style:"currency",currency:x.currency}).format(Number(x.amount_minor)/100),meta:(x.clients?.name??"Client")+" · "+x.method.replaceAll("_"," "),href:"/receipts/"+x.id,kind:"Payment"})});
