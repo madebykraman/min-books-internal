@@ -101,8 +101,8 @@ Product doctrine: PRODUCT_DOCTRINE.md
 Gate: invoice → issue → public → payment → receipt remains one coherent, historically stable slice.
 
 ### P1 — Business OS continuity
-1. Client profile + client ledger.
-2. Projects and project-linked documents.
+1. [x] Client profile + client ledger.
+2. [x] Projects and project-linked documents.
 3. Quotes.
 4. Credit notes.
 5. Recurring invoices.
@@ -111,7 +111,7 @@ Gate: invoice → issue → public → payment → receipt remains one coherent,
 8. Shared activity timeline.
 9. Global command menu actions.
 
-Gate: user can operate an ongoing client relationship without leaving the workspace.
+Gate: user can operate an ongoing client relationship without leaving the workspace. Project continuity is now the first completed P1 slice; quotes/credit notes/recurring/delivery/timeline/command actions remain next.
 
 ### P2 — India-ready financial operations
 1. GST profile and tax rule model.
@@ -176,4 +176,4 @@ On-demand audit loop:
 
 ## Current active layer
 
-P0 stabilization → code-side hardening is complete. Remaining P0 exit checks are environment-bound: the latest hardening commits must pass GitHub CI, then the actual Vercel project/session and the user's FinBooksOS Supabase migration state must be verified. Static migration audit confirms workspace-scoped RLS on core financial tables and security-definer payment mutations with membership checks.
+P1 Business OS continuity → project continuity slice is implemented on `main`; next breadth is quotes, credit notes, recurring invoices, reminder execution, delivery states, shared timeline and command actions. Remaining P0 exit checks are environment-bound: the latest hardening commits must pass GitHub CI, then the actual Vercel project/session and the user's FinBooksOS Supabase migration state must be verified. Static migration audit confirms workspace-scoped RLS on core financial tables and security-definer payment mutations with membership checks.
