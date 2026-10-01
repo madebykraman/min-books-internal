@@ -23,7 +23,7 @@ export default function InvoicesPage(){
   const workspaceId=localStorage.getItem("finbooksos.workspace");
   if(!workspaceId){setLoading(false);return}
   const q=encodeURIComponent(workspaceId);
-  Promise.all([fetch("/api/documents?workspaceId="+q),fetch("/api/payments?workspaceId="+q)])
+  Promise.all([fetch("/api/documents?workspaceId="+q+"&type=INVOICE"),fetch("/api/payments?workspaceId="+q)])
    .then(async([ir,pr])=>{
     const [id,pd]=await Promise.all([ir.json(),pr.json()]);
     if(!ir.ok)throw new Error(id.error||"Unable to load invoices");
