@@ -86,3 +86,29 @@ set logo_url=coalesce(o.logo_url,b.logo_url),
 from public.workspaces w
 join public.business_profiles b on b.workspace_id=w.id
 where w.organization_id=o.id;
+
+
+create or replace function public.bump_organization_invoice_number()
+returns trigger language plpgsql security definer set search_path=public as $$
+declare
+  org_id uuid;
+  numeric_part bigint;
+begin
+  if old.status='DRAFT' and new.status='SENT' then
+    select organization_id into org_id from public.workspaces where id=new.workspace_id;
+    if org_id is not null then
+      numeric_part := nullif(regexp_replace(new.document_number,'[^0-9]','','g'),'')::bigint;
+      if numeric_part is not null then
+        update public.organizations
+        set next_invoice_number=greatest(next_invoice_number,numeric_part+1),updated_at=now()
+        where id=org_id;
+      end if;
+    end if;
+  end if;
+  return new;
+end $$;
+
+drop trigger if exists documents_bump_org_invoice_number on public.documents;
+create trigger documents_bump_org_invoice_number
+after update of status on public.documents
+for each row execute function public.bump_organization_invoice_number();
