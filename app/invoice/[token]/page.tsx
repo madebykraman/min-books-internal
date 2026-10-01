@@ -12,7 +12,7 @@ export default async function PublicInvoice({params}:{params:Promise<{token:stri
   const supabase=await createClient();
   const {data:doc}=await supabase
     .from("documents")
-    .select("id,document_number,status,issue_date,due_date,currency,public_token")
+    .select("id,document_number,type,status,issue_date,due_date,currency,public_token")
     .eq("public_token",token)
     .maybeSingle();
   if(!doc)return notFound();
@@ -37,12 +37,12 @@ export default async function PublicInvoice({params}:{params:Promise<{token:stri
     <article className={styles.paper}>
       <header className={styles.paperHeader}>
         <div><strong>{String(issuer.display_name||issuer.legal_name||issuer.name||"Organisation")}</strong><small>{String(issuer.email||"")}</small></div>
-        <div className={styles.invoice}><span>INVOICE</span><b>{doc.document_number}</b><small>{doc.issue_date}</small></div>
+        <div className={styles.invoice}><span>{doc.type==="QUOTE"?"QUOTE":"INVOICE"}</span><b>{doc.document_number}</b><small>{doc.issue_date}</small></div>
       </header>
       <div className={styles.rule}/>
       <section className={styles.paperMeta}>
-        <div><small>BILLED TO</small><strong>{String(recipient.company||recipient.legal_name||recipient.name||"Client")}</strong><span>{String(recipient.email||"")}</span></div>
-        <div><small>STATUS</small><strong>{doc.status}</strong><span>Due {doc.due_date||"on receipt"}</span></div>
+        <div><small>{doc.type==="QUOTE"?"PREPARED FOR":"BILLED TO"}</small><strong>{String(recipient.company||recipient.legal_name||recipient.name||"Client")}</strong><span>{String(recipient.email||"")}</span></div>
+        <div><small>STATUS</small><strong>{doc.status}</strong><span>{doc.type==="QUOTE"?"Valid until":"Due"} {doc.due_date||"—"}</span></div>
       </section>
       <table>
         <thead><tr><th>Description</th><th>Qty</th><th>Rate</th><th>Amount</th></tr></thead>
