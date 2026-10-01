@@ -13,7 +13,7 @@ The two source repositories remain untouched.
 
 There is intentionally no product-facing application brand. The selected organisation is the identity shown in the workspace, public documents and client portal.
 
-Global UI typography is Geist Sans with Geist Mono for financial identifiers. Geist is also prepared deterministically for PDF rendering. citeturn2search0
+Global UI typography is Geist Sans with Geist Mono for financial identifiers. Geist is also prepared deterministically for PDF rendering.
 
 ## Architectural rules
 
