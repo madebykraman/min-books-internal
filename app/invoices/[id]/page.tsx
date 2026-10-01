@@ -1,0 +1,27 @@
+"use client";
+import {useEffect,useMemo,useState} from "react";
+import {ArrowLeft,Download,ExternalLink,MoreHorizontal,Send,Clock3,CheckCircle2,CircleDollarSign} from "lucide-react";
+import AppShell from "../../../components/AppShell";
+import styles from "./page.module.css";
+type DocumentData={id:string;document_number:string;status:string;issue_date:string;due_date:string|null;currency:string;draft_payload?:{items?:Array<{description?:string;qty?:string;rate?:string;tax?:string}>;note?:string;totals?:{subtotalMinor?:string;taxMinor?:string;totalMinor?:string}};clients?:{name?:string;email?:string;address?:string;gstin?:string};document_events?:Array<{id:string;event_type:string;created_at:string;metadata?:Record<string,unknown>}>;document_versions?:Array<{id:string;version:number;created_at:string;snapshot?:Record<string,unknown>}>;public_token?:string|null};
+const money=(minor?:string,currency="INR")=>new Intl.NumberFormat("en-IN",{style:"currency",currency,maximumFractionDigits:2}).format(Number(minor??0)/100);
+const eventLabel=(value:string)=>value.replaceAll("_"," ").toLowerCase().replace(/\b\w/g,c=>c.toUpperCase());
+export default function InvoiceDetailPage({params}:{params:Promise<{id:string}>}){
+ const [doc,setDoc]=useState<DocumentData|null>(null);const [error,setError]=useState("");const [loading,setLoading]=useState(true);
+ useEffect(()=>{params.then(({id})=>fetch("/api/documents/"+encodeURIComponent(id)).then(r=>r.json().then(d=>{if(!r.ok)throw new Error(d.error);setDoc(d.data)})).catch(e=>setError(e.message||"Unable to load invoice")).finally(()=>setLoading(false)))},[params]);
+ const items=doc?.draft_payload?.items??[];const events=useMemo(()=>[...(doc?.document_events??[])].sort((a,b)=>b.created_at.localeCompare(a.created_at)),[doc]);const version=doc?.document_versions?.slice().sort((a,b)=>b.version-a.version)[0];
+ if(loading)return <AppShell title="Invoice"><div className={styles.loading}>Loading invoice…</div></AppShell>;
+ if(error||!doc)return <AppShell title="Invoice"><div className={styles.error}>{error||"Invoice not found"}<a href="/invoices">Back to invoices</a></div></AppShell>;
+ return <AppShell title="${doc.document_number}" subtitle="${doc.clients?.name??"Unassigned client"} · Issued ${doc.issue_date}" action={<div className={styles.actions}><span className={styles.status}>{eventLabel(doc.status)}</span><button><MoreHorizontal size={15}/></button><button onClick={()=>window.print()}><Download size={13}/> PDF</button>{doc.public_token&&<a href={"/invoice/"+doc.public_token} target="_blank" rel="noreferrer"><ExternalLink size={13}/> Public</a>}<button className={styles.primary}><Send size={13}/> Send</button></div>}>
+ <div className={styles.backRow}><a href="/invoices"><ArrowLeft size={14}/> Back to invoices</a></div>
+ <div className={styles.grid}><section className={styles.documentPanel}><div className={styles.paper}>
+ <div className={styles.paperTop}><div><div className={styles.logo}>F</div><strong>FinBooksOS</strong><small>Independent studio</small></div><div className={styles.invoiceLabel}><span>INVOICE</span><b>{doc.document_number}</b><small>{doc.issue_date}</small></div></div><div className={styles.rule}/>
+ <div className={styles.billRow}><div><small>BILLED TO</small><strong>{doc.clients?.name??"Client"}</strong><span>{doc.clients?.address??"Billing address not supplied"}</span><span>{doc.clients?.email}</span></div><div><small>DUE</small><strong>{doc.due_date??"—"}</strong><span>{doc.currency}</span></div></div>
+ <table><thead><tr><th>Description</th><th>Qty</th><th>Rate</th><th>Tax</th><th>Amount</th></tr></thead><tbody>{items.map((item,i)=><tr key={i}><td>{item.description||"Untitled service"}</td><td>{item.qty}</td><td>{money(String(Math.round(Number(item.rate??0)*100)),doc.currency)}</td><td>{item.tax??0}%</td><td>{money(String(Math.round(Number(item.qty??0)*Number(item.rate??0)*100)),doc.currency)}</td></tr>)}</tbody></table>
+ <div className={styles.totals}><div><span>Subtotal</span><b>{money(doc.draft_payload?.totals?.subtotalMinor,doc.currency)}</b></div><div><span>Tax</span><b>{money(doc.draft_payload?.totals?.taxMinor,doc.currency)}</b></div><div className={styles.grand}><span>Total</span><b>{money(doc.draft_payload?.totals?.totalMinor,doc.currency)}</b></div></div>
+ {doc.draft_payload?.note&&<div className={styles.note}><small>PAYMENT TERMS</small><p>{doc.draft_payload.note}</p></div>}{version&&<div className={styles.immutable}><CheckCircle2 size={14}/><span>Issued version {version.version} is preserved as the historical document record.</span></div>}
+ </div></section>
+ <aside className={styles.side}><section className={styles.card}><div className={styles.cardTitle}><Clock3 size={15}/><h2>Activity</h2></div>{events.length?<div className={styles.timeline}>{events.map(e=><div className={styles.event} key={e.id}><span className={styles.dot}/><div><strong>{eventLabel(e.event_type)}</strong><small>{new Date(e.created_at).toLocaleString("en-IN",{dateStyle:"medium",timeStyle:"short"})}</small></div></div>)}</div>:<p className={styles.empty}>No recorded events yet.</p>}</section>
+ <section className={styles.card}><div className={styles.cardTitle}><CircleDollarSign size={15}/><h2>Payment</h2></div><div className={styles.paymentState}><strong>{doc.status==="PAID"?"Paid":"No payment recorded"}</strong><span>{doc.status==="PAID"?"Payment has been allocated to this invoice.":"Payment recording will live here without altering the issued document."}</span></div></section></aside></div>
+ </AppShell>
+}
