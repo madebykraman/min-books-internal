@@ -62,10 +62,10 @@ export async function GET(_request:NextRequest,{params}:{params:Promise<{id:stri
     right(page,String(item.qty??1),425,y,mono,8.5);
     right(page,item.rate==null||item.rate===""?"TBD":money(Math.round(Number(item.rate)*100)),490,y,mono,8.5);
     right(page,item.rate==null||item.rate===""?"TBD":money(Math.round(Number(item.qty??1)*Number(item.rate)*100)),547,y,mono,8.5);
-    y-=lineH;page.drawLine({start:{x:48,y+7},end:{x:547,y+7},thickness:.25,color:LINE});
+    y-=lineH;page.drawLine({start:{x:48,y:y+7},end:{x:547,y:y+7},thickness:.25,color:LINE});
   }
   if(y<170){drawFooter();page=pdf.addPage([PAGE.width,PAGE.height]);y=PAGE.height-70}
-  page.drawLine({start:{x:48,y+8},end:{x:547,y+8},thickness:.7,color:BLACK});y-=12;
+  page.drawLine({start:{x:48,y:y+8},end:{x:547,y:y+8},thickness:.7,color:BLACK});y-=12;
   right(page,"SUBTOTAL",450,y,semibold,8,MUTED);right(page,money(Number(totals.subtotalMinor??0)),547,y,mono,9);y-=16;
   right(page,"TAX",450,y,semibold,8,MUTED);right(page,money(Number(totals.taxMinor??0)),547,y,mono,9);y-=20;
   right(page,"TOTAL",450,y,semibold,9);right(page,money(Number(totals.totalMinor??0)),547,y,mono,11);y-=32;
