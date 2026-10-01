@@ -5,7 +5,8 @@ import {ArrowLeft,Check,ChevronDown,MoreHorizontal,Plus,Send,Trash2,FileText} fr
 import {calculateInvoiceTotals} from "../../../lib/domain/calculations";
 import styles from "./page.module.css";
 
-type Item={id:number;description:string;qty:string;rate:string;tax:string};\ntype Project={id:string;name:string;code:string|null;status:string};
+type Item={id:number;description:string;qty:string;rate:string;tax:string};
+type Project={id:string;name:string;code:string|null;status:string};
 const fallbackClients=[{id:"demo-acme",name:"Acme Studio",email:"accounts@acmestudio.co",address:"14 Residency Road, Bengaluru",gstin:"29AAACA1234A1Z5"},{id:"demo-northstar",name:"Northstar Media",email:"finance@northstar.media",address:"Mumbai, Maharashtra",gstin:"27AAACN8821D1Z2"}];
 const money=(minor:bigint)=>new Intl.NumberFormat("en-IN",{style:"currency",currency:"INR",maximumFractionDigits:2}).format(Number(minor)/100);
 const uid=()=>Date.now()+Math.floor(Math.random()*1000);
