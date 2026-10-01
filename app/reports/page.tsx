@@ -2,7 +2,7 @@
 import {useEffect,useMemo,useState} from "react";
 import {ArrowDownRight,ArrowUpRight,BarChart3,Download,WalletCards} from "lucide-react";
 import AppShell from "../../components/AppShell";
-import {allocationByDocument,confirmedPaymentTotal,documentBalance,isReceivable} from "../../lib/financial/ledger";
+import {allocationByDocument,confirmedPaymentTotal,documentBalance,creditAllocationByDocument,isReceivable} from "../../lib/financial/ledger";
 import styles from "./page.module.css";
 
 type Row={id:string;document_number?:string;status:string;issue_date?:string;draft_payload?:{totals?:{totalMinor?:string}}};
@@ -16,11 +16,11 @@ export default function Reports(){
  const [rows,setRows]=useState<Row[]>([]),[payments,setPayments]=useState<Payment[]>([]),[expenses,setExpenses]=useState<Expense[]>([]);
  const [loading,setLoading]=useState(true);
  useEffect(()=>{const w=localStorage.getItem("finbooksos.workspace");if(!w){setLoading(false);return}const q=encodeURIComponent(w);Promise.all([fetch("/api/documents?workspaceId="+q+"&type=INVOICE"),fetch("/api/payments?workspaceId="+q),fetch("/api/expenses?workspaceId="+q)]).then(async rs=>Promise.all(rs.map(r=>r.json()))).then(([d,p,e])=>{setRows(d.data??[]);setPayments(p.data??[]);setExpenses(e.data??[])}).catch(()=>{}).finally(()=>setLoading(false))},[]);
- const allocations=useMemo(()=>allocationByDocument(payments),[payments]);
+ const allocations=useMemo(()=>allocationByDocument(payments),[payments]); const creditAllocations=useMemo(()=>creditAllocationByDocument(credits.flatMap((x:any)=>x.credit_note_applications??[])),[credits]);
  const receivables=useMemo(()=>rows.filter(r=>isReceivable(r.status)),[rows]);
  const total=useMemo(()=>receivables.reduce((a,r)=>a+n(r),0),[receivables]);
  const collectedAgainstReceivables=useMemo(()=>receivables.reduce((a,r)=>a+(allocations.get(r.id)??0)/100,0),[receivables,allocations]);
- const overdue=useMemo(()=>receivables.filter(r=>r.status==="OVERDUE").reduce((a,r)=>a+documentBalance(r,allocations)/100,0),[receivables,allocations]);
+ const overdue=useMemo(()=>receivables.filter(r=>r.status==="OVERDUE").reduce((a,r)=>a+documentBalance(r,allocations,creditAllocations)/100,0),[receivables,allocations]);
  const open=useMemo(()=>receivables.filter(r=>r.status!=="OVERDUE").reduce((a,r)=>a+documentBalance(r,allocations)/100,0),[receivables,allocations]);
  const collected=useMemo(()=>confirmedPaymentTotal(payments)/100,[payments]);
  const spent=useMemo(()=>expenses.filter(r=>r.status!=="VOID").reduce((a,r)=>a+Number(r.amount_minor)/100,0),[expenses]);
