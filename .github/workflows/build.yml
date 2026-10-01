@@ -1,4 +1,4 @@
-name: FinBooksOS build
+name: Merged finance build
 on:
   push:
     branches: [main]
