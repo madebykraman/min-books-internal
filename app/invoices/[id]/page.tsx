@@ -1,6 +1,6 @@
 "use client";
 import {useEffect,useMemo,useState} from "react";
-import {ArrowLeft,Download,ExternalLink,MoreHorizontal,Send,Clock3,CheckCircle2,CircleDollarSign,ReceiptText} from "lucide-react";
+import {ArrowLeft,Download,ExternalLink,Clock3,CircleDollarSign,ReceiptText} from "lucide-react";
 import AppShell from "../../../components/AppShell";
 import styles from "./page.module.css";
 
@@ -14,7 +14,7 @@ export default function InvoiceDetailPage({params}:{params:Promise<{id:string}>}
  const issuedVersion=doc?.document_versions?.filter(v=>v.immutable).sort((a,b)=>b.version-a.version)[0];const payload=issuedVersion?.payload??doc?.draft_payload;const items=payload?.items??[];const events=useMemo(()=>[...(doc?.document_events??[])].sort((a,b)=>b.created_at.localeCompare(a.created_at)),[doc]);
  if(loading)return <AppShell title="Invoice"><div className={styles.loading}>Loading invoice…</div></AppShell>;
  if(error||!doc)return <AppShell title="Invoice"><div className={styles.error}>{error||"Invoice not found"}<a href="/invoices">Back to invoices</a></div></AppShell>;
- return <AppShell title={doc.document_number} subtitle={(doc.clients?.name??"Unassigned client")+" · Issued "+doc.issue_date} action={<div className={styles.actions}><span className={styles.status}>{label(doc.status)}</span><button><MoreHorizontal size={15}/></button><a href={"/api/invoices/"+doc.id+"/pdf"} className={styles.pdf}><Download size={13}/> PDF</a><button className={styles.primary}><Send size={13}/> Send</button></div>}>
+ return <AppShell title={doc.document_number} subtitle={(doc.clients?.name??"Unassigned client")+" · Issued "+doc.issue_date} action={<div className={styles.actions}><span className={styles.status}>{label(doc.status)}</span><a href={"/api/invoices/"+doc.id+"/pdf"} className={styles.pdf}><Download size={13}/> PDF</a></div>}>
   <div className={styles.backRow}><a href="/invoices"><ArrowLeft size={14}/> Back to invoices</a></div>
   <div className={styles.grid}>
    <section className={styles.documentPanel}>
