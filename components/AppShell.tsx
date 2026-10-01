@@ -72,7 +72,7 @@ export default function AppShell({children,title="Overview",subtitle,action}:{ch
       <div className={styles.groupLabel}>Main menu</div>
       <nav className={styles.nav}>{nav.map(([label,href,Icon])=>{
         const activeRoute=href==="/" ? pathname==="/" : pathname.startsWith(href);
-        return <Link href={href} key={label} className={activeRoute?styles.active:styles.item}><Icon size={16}/><span>{label}</span>{label==="Invoices"&&<em>4</em>}</Link>
+        return <Link href={href} key={label} className={activeRoute?styles.active:styles.item}><Icon size={16}/><span>{label}</span></Link>
       })}</nav>
       <div className={styles.groupLabel}>Other</div>
       <nav className={styles.nav}><Link href="/settings" className={pathname.startsWith("/settings")?styles.active:styles.item}><Settings2 size={16}/><span>Settings</span></Link></nav>
