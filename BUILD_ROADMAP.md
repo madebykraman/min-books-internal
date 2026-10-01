@@ -1,6 +1,6 @@
 # Min Books Internal — Master Audit, Checklist & Roadmap
 
-Last audited: 2026-10-01
+Last audited: 2026-10-02
 Governing specification: invoice_product_intelligence_report_final.md
 Product doctrine: PRODUCT_DOCTRINE.md
 
@@ -16,6 +16,7 @@ Product doctrine: PRODUCT_DOCTRINE.md
 - Dark-only, dense, premium financial workspace UI.
 - No generic AI/SaaS styling, decorative gradients, emoji business UI, giant contextless cards, or purposeless charts.
 - Semantic tokens and accessible interaction states remain mandatory.
+- Work directly on `main`; no additional development branches.
 
 ## Audit status
 
@@ -63,7 +64,8 @@ Product doctrine: PRODUCT_DOCTRINE.md
 - [x] settings/business profile
 - [x] reminder-rule storage/UI
 - [x] reports and CSV export
-- [ ] payment reversal/void workflow
+- [x] payment reversal/void workflow + audit behavior
+- [x] allocation-aware invoice/dashboard/report balances
 - [ ] allocation/reconciliation detail
 - [ ] receipt history and reprint parity
 - [ ] expense tax/accounting dimensions
@@ -173,4 +175,4 @@ On-demand audit loop:
 
 ## Current active layer
 
-P0 stabilization → merged build verification, navigation integrity, financial edge cases, RLS/migration verification, PDF regression, mobile audit.
+P0 stabilization → financial ledger correctness, controlled payment voiding, navigation integrity, invoice edge cases, RLS/migration verification, PDF regression, mobile audit and production deployment verification.
