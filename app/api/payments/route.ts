@@ -7,7 +7,7 @@ export async function GET(request:Request){
   if(authError||!user)return NextResponse.json({error:"Unauthorized"},{status:401});
   const workspaceId=new URL(request.url).searchParams.get("workspaceId");
   if(!workspaceId)return NextResponse.json({error:"Workspace is required"},{status:400});
-  const {data,error}=await supabase.from("payments").select("id,payment_date,amount_minor,currency,method,reference,notes,status,created_at,clients(name),payment_allocations(document_id,amount_minor,documents(document_number))").eq("workspace_id",workspaceId).order("payment_date",{ascending:false}).order("created_at",{ascending:false});
+  const {data,error}=await supabase.from("payments").select("id,client_id,payment_date,amount_minor,currency,method,reference,notes,status,created_at,clients(name),payment_allocations(document_id,amount_minor,documents(document_number))").eq("workspace_id",workspaceId).order("payment_date",{ascending:false}).order("created_at",{ascending:false});
   if(error)return NextResponse.json({error:error.message},{status:400});
   return NextResponse.json({data:data??[]});
 }
