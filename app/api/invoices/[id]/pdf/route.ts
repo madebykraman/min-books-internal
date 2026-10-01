@@ -10,7 +10,7 @@ const BLACK = rgb(0.05,0.05,0.06), MUTED = rgb(0.40,0.40,0.44), LINE = rgb(0.78,
 const safe=(v:unknown)=>String(v??"").replace(/[\r\n\t]+/g, " ");
 const money=(minor:number)=>"₹"+(minor/100).toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2});
 const date=(v:string|null|undefined)=>v?new Date(v+"T00:00:00").toLocaleDateString("en-IN",{day:"2-digit",month:"long",year:"numeric"}):"—";
-function wrap(text:string,font:any,size:number,width:number){const words=safe(text).split(/\\s+/).filter(Boolean);const out:string[]=[];let line="";for(const word of words){const next=line?line+" "+word:word;if(!line||font.widthOfTextAtSize(next,size)<=width)line=next;else{out.push(line);line=word}}if(line)out.push(line);return out}
+function wrap(text:string,font:any,size:number,width:number){const words=safe(text).split(/\s+/).filter(Boolean);const out:string[]=[];let line="";for(const word of words){const next=line?line+" "+word:word;if(!line||font.widthOfTextAtSize(next,size)<=width)line=next;else{out.push(line);line=word}}if(line)out.push(line);return out}
 function text(page:any,value:string,x:number,y:number,font:any,size:number,color=BLACK){page.drawText(safe(value),{x,y,font,size,color})}
 function right(page:any,value:string,rightX:number,y:number,font:any,size:number,color=BLACK){const s=safe(value);text(page,s,rightX-font.widthOfTextAtSize(s,size),y,font,size,color)}
 async function imageFromUrl(pdf:any,url:string|null|undefined){if(!url)return null;try{const res=await fetch(url);if(!res.ok)return null;const bytes=await res.arrayBuffer();const type=(res.headers.get("content-type")||"").toLowerCase();return type.includes("png")?pdf.embedPng(bytes):pdf.embedJpg(bytes)}catch{return null}}
