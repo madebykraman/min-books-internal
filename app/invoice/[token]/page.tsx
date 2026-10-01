@@ -1,6 +1,6 @@
 import {notFound} from "next/navigation";
 import {createClient} from "../../../lib/supabase/server";
-import styles from "./page.module.css";
+import styles from "./page.module.css";\nimport {calculateInvoiceTotals,majorToMinor} from "../../../lib/domain/calculations";
 
 type InvoiceItem={description?:string;title?:string;qty?:string|number;rate?:string|number;tax?:string|number};
 type InvoicePayload={items?:InvoiceItem[];note?:string;totals?:{subtotalMinor?:string;taxMinor?:string;totalMinor?:string}};
@@ -49,8 +49,8 @@ export default async function PublicInvoice({params}:{params:Promise<{token:stri
         <tbody>{lines.map((line,i)=><tr key={i}>
           <td>{line.description||line.title||"Untitled service"}</td>
           <td>{line.qty??1}</td>
-          <td>{line.rate==null||line.rate===""?"TBD":money(String(Math.round(Number(line.rate)*100)),doc.currency)}</td>
-          <td>{line.rate==null||line.rate===""?"TBD":money(String(Math.round(Number(line.qty??1)*Number(line.rate)*100)),doc.currency)}</td>
+          <td>{line.rate==null||line.rate===""?"TBD":money(String(majorToMinor(String(line.rate))),doc.currency)}</td>
+          <td>{line.rate==null||line.rate===""?"TBD":money(String(calculateInvoiceTotals([{quantity:line.qty??1,unitPriceMinor:majorToMinor(String(line.rate)),taxRate:line.tax??0}]).subtotalMinor),doc.currency)}</td>
         </tr>)}</tbody>
       </table>
       <section className={styles.totals}>
