@@ -1,6 +1,6 @@
 "use client";
 
-import {Bell,ChevronDown,FileBarChart2,LayoutDashboard,ReceiptText,Settings2,Users,WalletCards,CircleDollarSign,PackageOpen,Workflow,Check,FileCheck2,FolderKanban} from "lucide-react";
+import {Bell,ChevronDown,FileBarChart2,LayoutDashboard,ReceiptText,Settings2,Users,WalletCards,CircleDollarSign,PackageOpen,Workflow,Check,FileCheck2,FolderKanban,FileMinus,CalendarClock,BellRing} from "lucide-react";
 import Link from "next/link";
 import {usePathname} from "next/navigation";
 import {useEffect,useMemo,useState} from "react";
@@ -11,6 +11,9 @@ const nav=[
   ["Overview","/",LayoutDashboard],
   ["Invoices","/invoices",ReceiptText],
   ["Quotes","/quotes",FileCheck2],
+  ["Credit notes","/credit-notes",FileMinus],
+  ["Recurring","/recurring",CalendarClock],
+  ["Reminders","/reminders",BellRing],
   ["Clients","/clients",Users],\n  ["Projects","/projects",FolderKanban],
   ["Payments","/payments",WalletCards],
   ["Expenses","/expenses",CircleDollarSign],
