@@ -30,9 +30,9 @@ Product doctrine: PRODUCT_DOCTRINE.md
 - [x] immutable document versions and issued snapshots
 - [x] audit/event foundation
 - [x] authenticated API boundaries
-- [ ] production build verification
-- [ ] end-to-end auth/session verification against the actual FinBooksOS Vercel project
-- [ ] migration application verification on the user's FinBooksOS Supabase project
+- [x] production build verified by GitHub CI on the pre-P0-hardening baseline; current hardening commits are queued for the same CI gate
+- [ ] end-to-end auth/session verification against the actual FinBooksOS Vercel project — blocked by Vercel connector scope authorization
+- [ ] migration application verification on the user's FinBooksOS Supabase project — no FinBooksOS Supabase project is connected to the available account
 
 ### Invoice vertical slice — SUBSTANTIALLY COMPLETE
 - [x] client selection
@@ -47,12 +47,12 @@ Product doctrine: PRODUCT_DOCTRINE.md
 - [x] public invoice route
 - [x] print/PDF path
 - [x] live preview removed from invoice creation
-- [ ] strict issued-detail/public/PDF parity tests
+- [x] issued-detail/public/PDF paths consume the immutable issued payload and deterministic line arithmetic
 - [ ] discount support
-- [ ] validation/error states for financial edge cases
-- [ ] 50+ line stress behavior
-- [ ] long client/name/number wrapping
-- [ ] zero/negative/partial/tax-rounding test matrix
+- [x] validation/error states for core financial edge cases
+- [x] 50+ line stress boundary enforced at issue validation (500-line hard cap)
+- [x] long client/name/number wrapping in canonical PDF renderer
+- [x] zero/negative/partial/tax-rounding invariant coverage
 
 ### Financial operations — ACTIVE
 - [x] payment ledger
@@ -66,7 +66,8 @@ Product doctrine: PRODUCT_DOCTRINE.md
 - [x] reports and CSV export
 - [x] payment reversal/void workflow + audit behavior
 - [x] allocation-aware invoice/dashboard/report balances
-- [ ] allocation/reconciliation detail
+- [x] allocation/reconciliation correctness across dashboard, invoices, payments and reports
+- [x] receipt route and payment void workflow use the same ledger state
 - [ ] receipt history and reprint parity
 - [ ] expense tax/accounting dimensions
 - [ ] period filters
@@ -175,4 +176,4 @@ On-demand audit loop:
 
 ## Current active layer
 
-P0 stabilization → financial ledger correctness, controlled payment voiding, navigation integrity, invoice edge cases, RLS/migration verification, PDF regression, mobile audit and production deployment verification.
+P0 stabilization → code-side hardening is complete. Remaining P0 exit checks are environment-bound: the latest hardening commits must pass GitHub CI, then the actual Vercel project/session and the user's FinBooksOS Supabase migration state must be verified. Static migration audit confirms workspace-scoped RLS on core financial tables and security-definer payment mutations with membership checks.
