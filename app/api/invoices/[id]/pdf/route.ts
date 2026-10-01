@@ -3,7 +3,7 @@ import { PDFDocument, rgb } from "pdf-lib";
 import fontkit from "@pdf-lib/fontkit";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
-import { createClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";\nimport {calculateInvoiceTotals,majorToMinor} from "@/lib/domain/calculations";
 
 const PAGE = { width: 595.2756, height: 841.8898 };
 const BLACK = rgb(0.05,0.05,0.06), MUTED = rgb(0.40,0.40,0.44), LINE = rgb(0.78,0.78,0.80);
@@ -60,8 +60,8 @@ export async function GET(_request:NextRequest,{params}:{params:Promise<{id:stri
     if(y-lineH<115){drawFooter();page=pdf.addPage([PAGE.width,PAGE.height]);y=PAGE.height-54;text(page,safe(issuer.display_name||issuer.name||""),48,y,semibold,13);right(page,safe(doc.document_number),547,y,mono,10);y-=35;text(page,"DESCRIPTION",48,y,semibold,8,MUTED);right(page,"QTY",425,y,semibold,8,MUTED);right(page,"RATE",490,y,semibold,8,MUTED);right(page,"AMOUNT",547,y,semibold,8,MUTED);y-=10;page.drawLine({start:{x:48,y},end:{x:547,y},thickness:.7,color:BLACK});y-=19}
     descLines.forEach((v:string,j:number)=>text(page,v,48,y-j*11,regular,8.5));
     right(page,String(item.qty??1),425,y,mono,8.5);
-    right(page,item.rate==null||item.rate===""?"TBD":money(Math.round(Number(item.rate)*100)),490,y,mono,8.5);
-    right(page,item.rate==null||item.rate===""?"TBD":money(Math.round(Number(item.qty??1)*Number(item.rate)*100)),547,y,mono,8.5);
+    right(page,item.rate==null||item.rate===""?"TBD":money(Number(majorToMinor(String(item.rate)))),490,y,mono,8.5);
+    right(page,item.rate==null||item.rate===""?"TBD":money(Number(calculateInvoiceTotals([{quantity:item.qty??1,unitPriceMinor:majorToMinor(String(item.rate)),taxRate:item.tax??0}]).subtotalMinor)),547,y,mono,8.5);
     y-=lineH;page.drawLine({start:{x:48,y:y+7},end:{x:547,y:y+7},thickness:.25,color:LINE});
   }
   if(y<170){drawFooter();page=pdf.addPage([PAGE.width,PAGE.height]);y=PAGE.height-70}
