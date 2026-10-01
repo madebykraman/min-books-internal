@@ -1,0 +1,1 @@
+export interface DocumentSnapshotInput{issuer:unknown;recipient:unknown;lines:unknown[];currency:{code:string;scale:number;symbol:string;exchangeRate?:number;rateSource?:string;rateTimestamp?:string};paymentInstructions:unknown;document:{number:string;issueDate:string;dueDate:string|null;type:string};templateVersion:string;layoutVersion:string;compliance:unknown}
