@@ -70,5 +70,5 @@ export async function GET(_request:NextRequest,{params}:{params:Promise<{id:stri
   drawFooter();
 
   const bytes=await pdf.save();
-  return new NextResponse(bytes,{headers:{"Content-Type":"application/pdf","Content-Disposition":\`attachment; filename="Invoice-\${safe(doc.document_number)}.pdf"\`,"Cache-Control":"private, no-store"}});
+  return new NextResponse(bytes,{headers:{"Content-Type":"application/pdf","Content-Disposition":`attachment; filename="Invoice-${safe(doc.document_number)}.pdf"`,"Cache-Control":"private, no-store"}});
 }
