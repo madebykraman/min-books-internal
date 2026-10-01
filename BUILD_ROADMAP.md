@@ -1,4 +1,4 @@
-# FinBooksOS — Master Audit, Checklist & Roadmap
+# Min Books Internal — Master Audit, Checklist & Roadmap
 
 Last audited: 2026-10-01
 Governing specification: invoice_product_intelligence_report_final.md
@@ -6,10 +6,10 @@ Product doctrine: PRODUCT_DOCTRINE.md
 
 ## Hard constraints
 
-- FinBooksOS is the only build target.
+- `min-books-internal` is the integration target; source repositories remain untouched.
 - Do not touch minimical.finance.
 - Do not modify DealVerify application code.
-- Build ahead without waiting for pasted Vercel logs.
+- Build only against explicit user-directed integration/QA work.
 - Financial truth stays deterministic and server/domain-owned.
 - Issued documents are immutable historical records.
 - Separate document, delivery, payment and compliance states.
@@ -39,14 +39,14 @@ Product doctrine: PRODUCT_DOCTRINE.md
 - [x] line-item CRUD
 - [x] centralized calculation
 - [x] draft autosave
-- [x] live preview
+- [x] live preview removal
 - [x] issue flow
 - [x] immutable issue snapshot
 - [x] invoice detail/history
 - [x] public invoice route
 - [x] print/PDF path
-- [ ] canonical shared DocumentPreview component
-- [ ] strict live-preview/detail/public/PDF parity tests
+- [x] live preview removed from invoice creation
+- [ ] strict issued-detail/public/PDF parity tests
 - [ ] discount support
 - [ ] validation/error states for financial edge cases
 - [ ] 50+ line stress behavior
@@ -88,7 +88,7 @@ Product doctrine: PRODUCT_DOCTRINE.md
 ## Roadmap
 
 ### P0 — Stabilize the financial core
-1. Canonical DocumentPreview / renderer.
+1. Canonical issued-document renderer and PDF parity.
 2. Fix every broken navigation path and incomplete detail route.
 3. Add strict invoice validation and edge-case handling.
 4. Add calculation/domain tests.
@@ -162,7 +162,7 @@ AI must produce structured proposals, assumptions and warnings. It never silentl
 
 ## Recurring audit loop
 
-Every 2 hours:
+On-demand audit loop:
 1. Inspect current repo state.
 2. Compare implementation against this roadmap and PRODUCT_DOCTRINE.md.
 3. Fix regressions before adding breadth.
@@ -173,4 +173,4 @@ Every 2 hours:
 
 ## Current active layer
 
-P0 stabilization → canonical renderer, navigation integrity, financial edge cases, domain tests, payment reversals, deployment/migration verification.
+P0 stabilization → merged build verification, navigation integrity, financial edge cases, RLS/migration verification, PDF regression, mobile audit.
