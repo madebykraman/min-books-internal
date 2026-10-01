@@ -15,7 +15,7 @@ const money=(v:number)=>new Intl.NumberFormat("en-IN",{style:"currency",currency
 export default function Reports(){
  const [rows,setRows]=useState<Row[]>([]),[payments,setPayments]=useState<Payment[]>([]),[expenses,setExpenses]=useState<Expense[]>([]);
  const [loading,setLoading]=useState(true);
- useEffect(()=>{const w=localStorage.getItem("finbooksos.workspace");if(!w){setLoading(false);return}const q=encodeURIComponent(w);Promise.all([fetch("/api/documents?workspaceId="+q),fetch("/api/payments?workspaceId="+q),fetch("/api/expenses?workspaceId="+q)]).then(async rs=>Promise.all(rs.map(r=>r.json()))).then(([d,p,e])=>{setRows(d.data??[]);setPayments(p.data??[]);setExpenses(e.data??[])}).catch(()=>{}).finally(()=>setLoading(false))},[]);
+ useEffect(()=>{const w=localStorage.getItem("finbooksos.workspace");if(!w){setLoading(false);return}const q=encodeURIComponent(w);Promise.all([fetch("/api/documents?workspaceId="+q+"&type=INVOICE"),fetch("/api/payments?workspaceId="+q),fetch("/api/expenses?workspaceId="+q)]).then(async rs=>Promise.all(rs.map(r=>r.json()))).then(([d,p,e])=>{setRows(d.data??[]);setPayments(p.data??[]);setExpenses(e.data??[])}).catch(()=>{}).finally(()=>setLoading(false))},[]);
  const allocations=useMemo(()=>allocationByDocument(payments),[payments]);
  const receivables=useMemo(()=>rows.filter(r=>isReceivable(r.status)),[rows]);
  const total=useMemo(()=>receivables.reduce((a,r)=>a+n(r),0),[receivables]);
