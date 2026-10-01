@@ -26,9 +26,12 @@ export async function GET(_request:NextRequest,{params}:{params:Promise<{id:stri
   const {data:profile}=await supabase.from("business_profiles").select("*").eq("workspace_id",doc.workspace_id).maybeSingle();
   const {data:workspace}=await supabase.from("workspaces").select("organization_id").eq("id",doc.workspace_id).maybeSingle();
   const {data:org}=workspace?.organization_id?await supabase.from("organizations").select("*").eq("id",workspace.organization_id).maybeSingle():{data:null};
-  const issuer:any=org??profile??{};
-  const payload:any=doc.draft_payload??{};
-  const items=Array.isArray(payload.items)?payload.items:[];
+  const versions:any[]=Array.isArray(doc.document_versions)?doc.document_versions:[];
+  const immutableVersion=versions.filter(v=>v?.immutable).sort((a,b)=>Number(b.version??0)-Number(a.version??0))[0];
+  const snapshot:any=immutableVersion?.snapshot??{};
+  const issuer:any=snapshot.issuer??org??profile??{};
+  const payload:any=immutableVersion?.payload??doc.draft_payload??{};
+  const items=Array.isArray(payload.items)?payload.items:(Array.isArray(snapshot.lines)?snapshot.lines:[]);
   const totals=payload.totals??{};
 
   const pdf=await PDFDocument.create();pdf.registerFontkit(fontkit);
@@ -43,7 +46,7 @@ export async function GET(_request:NextRequest,{params}:{params:Promise<{id:stri
   right(page,"INVOICE",547,y,semibold,9,MUTED);right(page,safe(doc.document_number),547,y-18,mono,12);right(page,date(doc.issue_date),547,y-36,regular,9,MUTED);
   y-=70;page.drawLine({start:{x:48,y},end:{x:547,y},thickness:.6,color:LINE});y-=26;
   text(page,"BILLED TO",48,y,semibold,8,MUTED);text(page,"PAY TO",320,y,semibold,8,MUTED);y-=17;
-  const client:any=doc.clients??{};const clientLines=[client.legal_name||client.name||"Client",client.email||"",client.phone||"",client.gstin?"GSTIN: "+client.gstin:"",client.pan?"PAN: "+client.pan:""].filter(Boolean);
+  const client:any=snapshot.recipient??doc.clients??{};const clientLines=[client.legal_name||client.name||"Client",client.email||"",client.phone||"",client.gstin?"GSTIN: "+client.gstin:"",client.pan?"PAN: "+client.pan:""].filter(Boolean);
   clientLines.slice(0,6).forEach((v:string,i:number)=>text(page,v,48,y-i*13,i===0?semibold:regular,9));
   const payLines=[issuer.payee_name||issuer.legal_name||issuer.display_name||"",issuer.account_number?"A/C "+issuer.account_number:"",issuer.bank_name?"Bank "+issuer.bank_name:"",issuer.branch_name?"Branch "+issuer.branch_name:"",issuer.ifsc_code?"IFSC "+issuer.ifsc_code:"",issuer.pan?"PAN "+issuer.pan:""].filter(Boolean);
   payLines.slice(0,6).forEach((v:string,i:number)=>text(page,v,320,y-i*13,i===0?semibold:regular,9));
