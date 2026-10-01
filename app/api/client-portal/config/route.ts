@@ -1,5 +1,5 @@
 import {NextResponse} from "next/server";
-import {randomBytes,scryptSync} from "node:crypto";
+import {hashPortalPassword} from "../../../../lib/client-portal/auth";
 import {createClient} from "../../../../lib/supabase/server";
 
 function hashPassword(password:string){const salt=randomBytes(16);const hash=scryptSync(password,salt,64);return "scrypt$"+salt.toString("hex")+"$"+hash.toString("hex")}
