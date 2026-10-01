@@ -2,6 +2,7 @@ import {NextResponse} from "next/server";
 import {cookies} from "next/headers";
 import {randomBytes,scryptSync,timingSafeEqual,createHash} from "node:crypto";
 import {createServiceClient} from "@/lib/supabase/service";
+import {hashPortalPassword} from "@/lib/client-portal/auth";
 
 function verify(password:string,encoded:string){
   const [scheme,saltHex,keyHex]=String(encoded).split("$");
@@ -27,8 +28,4 @@ export async function POST(request:Request){
     jar.set("client_portal_session",token,{httpOnly:true,secure:process.env.NODE_ENV==="production",sameSite:"lax",path:"/",maxAge:7*86400});
     return NextResponse.json({ok:true,expiresAt:session.data.expires_at});
   }catch(error){return NextResponse.json({error:error instanceof Error?error.message:"Portal unavailable"},{status:500})}
-}
-export function hashPortalPassword(password:string){
-  const salt=randomBytes(16);const hash=scryptSync(password,salt,64);
-  return "scrypt$"+salt.toString("hex")+"$"+hash.toString("hex");
 }
