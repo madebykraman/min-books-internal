@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build --webpack --debug-build-paths=\"app/page.tsx\" --debug-prerender",
+    "build": "next build --webpack --debug-build-paths=\"app/build-test/page.tsx\" --debug-prerender",
     "start": "next start",
     "typecheck": "tsc --noEmit"
   },
