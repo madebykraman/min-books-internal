@@ -1,0 +1,20 @@
+"use client";
+import {useEffect,useMemo,useState} from "react";
+import {Download,Filter,Plus,Search,SlidersHorizontal} from "lucide-react";
+import AppShell from "../../components/AppShell";
+import styles from "./page.module.css";
+type Row={id:string;document_number:string;status:string;issue_date:string;due_date:string|null;currency:string;draft_payload?:{totals?:{totalMinor?:string}};clients?:{name?:string|null}};
+const money=(minor?:string,currency="INR")=>new Intl.NumberFormat("en-IN",{style:"currency",currency,maximumFractionDigits:2}).format(Number(minor??0)/100);
+const label=(status:string)=>status.replaceAll("_"," ").replace(/\b\w/g,c=>c.toUpperCase());
+export default function InvoicesPage(){
+ const [rows,setRows]=useState<Row[]>([]);const [query,setQuery]=useState("");const [error,setError]=useState("");const [loading,setLoading]=useState(true);
+ useEffect(()=>{const workspaceId=localStorage.getItem("finbooksos.workspace");if(!workspaceId){setLoading(false);return}fetch("/api/documents?workspaceId="+encodeURIComponent(workspaceId)).then(async r=>{const d=await r.json();if(!r.ok)throw new Error(d.error);setRows(d.data??[])}).catch(e=>setError(e instanceof Error?e.message:"Unable to load invoices")).finally(()=>setLoading(false))},[]);
+ const filtered=useMemo(()=>{const q=query.trim().toLowerCase();return q?rows.filter(r=>[r.document_number,r.clients?.name??"",r.status].join(" ").toLowerCase().includes(q)):rows},[rows,query]);
+ const counts=useMemo(()=>Object.fromEntries(["DRAFT","SENT","OVERDUE","PAID"].map(s=>[s,rows.filter(r=>r.status===s).length])),[rows]);
+ return <AppShell title="Invoices" subtitle="A complete document ledger for issued, pending and paid work." action={<a href="/invoices/new" className={styles.primary}><Plus size={14}/> New invoice</a>}>
+  <section className={styles.stats}><div><span>Total invoices</span><b>{rows.length}</b><small>All documents</small></div><div><span>Outstanding</span><b>₹1,42,800</b><small>Across open invoices</small></div><div><span>Paid this month</span><b>₹3,84,200</b><small>14 payments</small></div><div><span>Overdue</span><b>₹28,500</b><small>2 need attention</small></div></section>
+  <section className={styles.toolbar}><label className={styles.search}><Search size={14}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Search invoice, client or reference…"/></label><div className={styles.tools}><button><Filter size={13}/> Status</button><button><SlidersHorizontal size={13}/> Filters</button><button><Download size={13}/> Export</button></div></section>
+  <nav className={styles.tabs}><a className={styles.active}>All <b>{rows.length}</b></a><a>Draft <b>{counts.DRAFT??0}</b></a><a>Sent <b>{counts.SENT??0}</b></a><a>Overdue <b>{counts.OVERDUE??0}</b></a><a>Paid <b>{counts.PAID??0}</b></a></nav>
+  {error?<div className={styles.empty}>{error}</div>:loading?<div className={styles.empty}>Loading invoices…</div>:filtered.length===0?<div className={styles.empty}>No invoices yet. Create the first one.</div>:<div className={styles.table}><div className={styles.head}><span>Document</span><span>Client</span><span>Dates</span><span>Amount</span><span>Status</span></div>{filtered.map(row=><a href={"/invoices/"+row.id} className={styles.row} key={row.id}><div><b>{row.document_number}</b><small>Issued {new Date(row.issue_date).toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric"})}</small></div><span>{row.clients?.name??"Unassigned client"}</span><div className={styles.dates}><span>{row.due_date?new Date(row.due_date).toLocaleDateString("en-IN",{day:"2-digit",month:"short"}):"—"}</span><small>due date</small></div><strong>{money(row.draft_payload?.totals?.totalMinor,row.currency)}</strong><i className={styles["status_"+row.status.toLowerCase()]}>{label(row.status)}</i></a>)}</div>}
+ </AppShell>
+}
