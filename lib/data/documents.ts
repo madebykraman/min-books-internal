@@ -27,7 +27,7 @@ export async function saveDraft(input:{id?:string;workspaceId:string;clientId:st
   if(input.id){
     const {data,error}=await supabase
       .from("documents")
-      .update({client_id:input.clientId,due_date:input.dueDate,draft_payload:input.payload,currency:input.currency})
+      .update({client_id:input.clientId,document_number:input.documentNumber,issue_date:input.issueDate,due_date:input.dueDate,draft_payload:input.payload,currency:input.currency})
       .eq("id",input.id).eq("workspace_id",input.workspaceId).select().single();
     if(error||!data) throw new Error(error?.message||"Unable to update draft");
     await supabase.from("document_events").insert({workspace_id:input.workspaceId,document_id:input.id,event_type:"DRAFT_SAVED",actor_user_id:input.actorUserId,metadata:{source:"editor"}});
