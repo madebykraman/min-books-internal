@@ -18,8 +18,7 @@ export async function GET(request:Request){
       supabase.from("workspaces").select("id,organization_id").eq("id",client.workspace_id).maybeSingle(),
       supabase.from("documents").select("id,document_number,status,issue_date,due_date,currency,draft_payload,updated_at,document_versions(immutable,version,payload,snapshot)").eq("workspace_id",client.workspace_id).eq("client_id",client.id).eq("type","INVOICE").order("issue_date",{ascending:false}),
       supabase.from("payments").select("id,payment_date,amount_minor,currency,method,reference,notes").eq("workspace_id",client.workspace_id).eq("client_id",client.id).order("payment_date",{ascending:false}),
-      supabase.from("payment_allocations").select("payment_id,document_id,amount_minor"),
-      supabase.from("projects").select("*").eq("workspace_id",client.workspace_id).eq("client_id",client.id).order("created_at",{ascending:false})
+      supabase.from("payment_allocations").select("payment_id,document_id,amount_minor")
     ]);
     const {data:organization}=workspace?.organization_id?await supabase.from("organizations").select("*").eq("id",workspace.organization_id).maybeSingle():{data:null};
     const invoiceRows=(invoices??[]).map((i:any)=>{
