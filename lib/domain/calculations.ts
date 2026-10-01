@@ -37,7 +37,9 @@ export function validateInvoiceInput(items:unknown){
   if(!quantity||!/^\+?\d+(?:\.\d+)?$/.test(quantity)||Number(quantity)<=0)throw new Error(`Line ${index+1}: quantity must be greater than zero`);
   if(!rate||!/^\+?\d+(?:\.\d+)?$/.test(rate)||Number(rate)<0)throw new Error(`Line ${index+1}: rate cannot be negative or invalid`);
   if(!tax||!/^\+?\d+(?:\.\d+)?$/.test(tax)||Number(tax)<0||Number(tax)>100)throw new Error(`Line ${index+1}: tax rate must be between 0% and 100%`);
-  if(String(item?.description??item?.title??"").trim().length>1000)throw new Error(`Line ${index+1}: description is too long`);
+  const description=String(item?.description??item?.title??"").trim();
+  if(!description)throw new Error(`Line ${index+1}: description is required`);
+  if(description.length>1000)throw new Error(`Line ${index+1}: description is too long`);
  });
  return true;
 }
