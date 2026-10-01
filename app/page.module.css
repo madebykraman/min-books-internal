@@ -5,3 +5,4 @@
 @media(max-width:430px){.metrics{grid-template-columns:1fr}.segment{display:none}}
 
 .empty{padding:24px;text-align:center;color:#6f6f78;font-size:9px;border-top:1px solid #29292d}
+.transfer{display:grid;gap:7px;margin-top:12px}.transfer a{min-height:40px;border:1px solid #29292d;border-radius:8px;background:#171719;display:flex;align-items:center;gap:8px;padding:0 10px;color:#d6d6da;font-size:9px;text-decoration:none}.transfer a:hover{background:#1d1d20;border-color:#3a3a40}
