@@ -29,6 +29,7 @@ export function validateCalculationLine(line:CalculationLine,index=0){
 
 export function validateInvoiceInput(items:unknown){
  if(!Array.isArray(items)||items.length===0)throw new Error("Invoice must contain at least one line item");
+ if(items.length>500)throw new Error("Invoice cannot contain more than 500 line items");
  items.forEach((item:any,index)=>{
   const quantity=String(item?.qty??item?.quantity??"").trim();
   const rate=String(item?.rate??item?.unitPrice??"").trim();
