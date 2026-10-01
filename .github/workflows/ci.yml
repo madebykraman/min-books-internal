@@ -16,4 +16,5 @@ jobs:
           node-version: 24
       - run: npm install --no-audit --no-fund
       - run: npm run test:ledger
+      - run: npm run test:calculations
       - run: npm run build
