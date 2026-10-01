@@ -19,7 +19,8 @@ export default function Home(){
  useEffect(()=>{const w=localStorage.getItem("finbooksos.workspace");if(!w)return;Promise.all([
   fetch("/api/documents?workspaceId="+encodeURIComponent(w)+"&type=INVOICE").then(r=>r.json()),
   fetch("/api/payments?workspaceId="+encodeURIComponent(w)).then(r=>r.json()),
-  fetch("/api/credit-notes?workspaceId="+encodeURIComponent(w)).then(r=>r.json()),\n  fetch("/api/expenses?workspaceId="+encodeURIComponent(w)).then(r=>r.json())
+  fetch("/api/credit-notes?workspaceId="+encodeURIComponent(w)).then(r=>r.json()),
+  fetch("/api/expenses?workspaceId="+encodeURIComponent(w)).then(r=>r.json())
  ]).then(([d,p,c,e])=>{setRows(d.data??[]);setPayments(p.data??[]);setCredits(c.data??[]);setExpenses(e.data??[])}).catch(()=>{})},[]);
  const allocations=useMemo(()=>allocationByDocument(payments),[payments]); const creditAllocations=useMemo(()=>creditAllocationByDocument(credits.flatMap((x:any)=>x.credit_note_applications??[])),[credits]);
  const receivables=useMemo(()=>rows.filter(r=>!["DRAFT","CANCELLED","VOID"].includes(r.status)),[rows]);
