@@ -21,7 +21,7 @@ export default function Payments(){
  const selected=invoices.find(x=>x.id===invoiceId);
  const invoiceTotal=Number(selected?.draft_payload?.totals?.totalMinor??0);
  const paidForSelected=invoiceId?(allocations.get(invoiceId)??0):0;
- const remaining=Math.max(invoiceTotal-paidForSelected,0);
+ const remaining=Math.max(invoiceTotal-paidForSelected-(creditAllocations.get(invoiceId)??0),0);
  const recorded=useMemo(()=>confirmedPaymentTotal(payments),[payments]);
  const openBalance=useMemo(()=>invoices.filter(x=>!["DRAFT","CANCELLED","VOID"].includes(x.status)).reduce((sum,x)=>sum+documentBalance(x,allocations,creditAllocations),0),[invoices,allocations]);
  const paidInvoiceValue=useMemo(()=>invoices.filter(x=>!["DRAFT","CANCELLED","VOID"].includes(x.status)&&documentBalance(x,allocations,creditAllocations)===0).reduce((sum,x)=>sum+Number(x.draft_payload?.totals?.totalMinor??0),0),[invoices,allocations]);
