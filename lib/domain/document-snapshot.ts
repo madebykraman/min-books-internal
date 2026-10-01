@@ -1,0 +1,3 @@
+import type {DocumentSnapshotInput} from "./types";
+export interface IssuedDocumentSnapshot{issuer:unknown;recipient:unknown;lines:unknown[];currency:{code:string;scale:number;symbol:string;exchangeRate?:number;rateSource?:string;rateTimestamp?:string};paymentInstructions:unknown;document:{number:string;issueDate:string;dueDate:string|null;type:string};templateVersion:string;layoutVersion:string;compliance:unknown}
+export function createIssuedSnapshot(input:DocumentSnapshotInput):IssuedDocumentSnapshot{return structuredClone(input)}
