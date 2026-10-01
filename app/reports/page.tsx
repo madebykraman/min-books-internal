@@ -13,19 +13,20 @@ const n=(r:Row)=>Number(r.draft_payload?.totals?.totalMinor??0)/100;
 const money=(v:number)=>new Intl.NumberFormat("en-IN",{style:"currency",currency:"INR",maximumFractionDigits:0}).format(v);
 
 export default function Reports(){
- const [rows,setRows]=useState<Row[]>([]),[payments,setPayments]=useState<Payment[]>([]),[expenses,setExpenses]=useState<Expense[]>([]);
+ const [rows,setRows]=useState<Row[]>([]),[credits,setCredits]=useState<any[]>([]),[payments,setPayments]=useState<Payment[]>([]),[expenses,setExpenses]=useState<Expense[]>([]);
  const [loading,setLoading]=useState(true);
- useEffect(()=>{const w=localStorage.getItem("finbooksos.workspace");if(!w){setLoading(false);return}const q=encodeURIComponent(w);Promise.all([fetch("/api/documents?workspaceId="+q+"&type=INVOICE"),fetch("/api/payments?workspaceId="+q),fetch("/api/expenses?workspaceId="+q)]).then(async rs=>Promise.all(rs.map(r=>r.json()))).then(([d,p,e])=>{setRows(d.data??[]);setPayments(p.data??[]);setExpenses(e.data??[])}).catch(()=>{}).finally(()=>setLoading(false))},[]);
+ useEffect(()=>{const w=localStorage.getItem("finbooksos.workspace");if(!w){setLoading(false);return}const q=encodeURIComponent(w);Promise.all([fetch("/api/documents?workspaceId="+q+"&type=INVOICE"),fetch("/api/payments?workspaceId="+q),fetch("/api/credit-notes?workspaceId="+q),fetch("/api/expenses?workspaceId="+q)]).then(async rs=>Promise.all(rs.map(r=>r.json()))).then(([d,p,c,e])=>{setRows(d.data??[]);setPayments(p.data??[]);setCredits(c.data??[]);setExpenses(e.data??[])}).catch(()=>{}).finally(()=>setLoading(false))},[]);
  const allocations=useMemo(()=>allocationByDocument(payments),[payments]); const creditAllocations=useMemo(()=>creditAllocationByDocument(credits.flatMap((x:any)=>x.credit_note_applications??[])),[credits]);
  const receivables=useMemo(()=>rows.filter(r=>isReceivable(r.status)),[rows]);
  const total=useMemo(()=>receivables.reduce((a,r)=>a+n(r),0),[receivables]);
- const collectedAgainstReceivables=useMemo(()=>receivables.reduce((a,r)=>a+(allocations.get(r.id)??0)/100,0),[receivables,allocations]);
+ const collectedAgainstReceivables=useMemo(()=>receivables.reduce((a,r)=>a+(allocations.get(r.id)??0)/100,0),[receivables,allocations,creditAllocations]);
  const overdue=useMemo(()=>receivables.filter(r=>r.status==="OVERDUE").reduce((a,r)=>a+documentBalance(r,allocations,creditAllocations)/100,0),[receivables,allocations]);
- const open=useMemo(()=>receivables.filter(r=>r.status!=="OVERDUE").reduce((a,r)=>a+documentBalance(r,allocations)/100,0),[receivables,allocations]);
+ const open=useMemo(()=>receivables.filter(r=>r.status!=="OVERDUE").reduce((a,r)=>a+documentBalance(r,allocations,creditAllocations)/100,0),[receivables,allocations]);
  const collected=useMemo(()=>confirmedPaymentTotal(payments)/100,[payments]);
  const spent=useMemo(()=>expenses.filter(r=>r.status!=="VOID").reduce((a,r)=>a+Number(r.amount_minor)/100,0),[expenses]);
  const net=collected-spent;
- const exportCsv=()=>{const lines=[["Metric","Value"],["Receivable document value",total],["Allocated collections against receivables",collectedAgainstReceivables],["Open receivable balance",open],["Recorded confirmed payments",collected],["Recorded expenses",spent],["Net recorded cash",net],["Overdue receivable balance",overdue]].map(r=>r.map(v=>"\""+String(v).replaceAll("\"","\"\"")+"\"").join(","));const blob=new Blob([lines.join("\n")],{type:"text/csv;charset=utf-8"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="finbooksos-report.csv";a.click();URL.revokeObjectURL(url)};
+ const exportCsv=()=>{const lines=[["Metric","Value"],["Receivable document value",total],["Allocated collections against receivables",collectedAgainstReceivables],["Open receivable balance",open],["Recorded confirmed payments",collected],["Recorded expenses",spent],["Net recorded cash",net],["Overdue receivable balance",overdue]].map(r=>r.map(v=>"\""+String(v).replaceAll("\"","\"\"")+"\"").join(","));const blob=new Blob([lines.join("
+")],{type:"text/csv;charset=utf-8"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="finbooksos-report.csv";a.click();URL.revokeObjectURL(url)};
  return <AppShell title="Reports" subtitle="A compact financial view built from your document, payment and expense ledgers." action={<button className={styles.export} onClick={exportCsv} disabled={loading}><Download size={13}/> Export CSV</button>}>
   <section className={styles.stats}>
    <div><span>Document value</span><b>{money(total)}</b><small>Across {receivables.length} receivable documents</small></div>
