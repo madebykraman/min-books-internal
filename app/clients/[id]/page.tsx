@@ -18,7 +18,6 @@ export default function ClientDetail({params}:{params:Promise<{id:string}>}){
  const allocations=useMemo(()=>allocationByDocument(payments),[payments]);
  const value=useMemo(()=>invoices.filter(r=>!["DRAFT","CANCELLED","VOID"].includes(r.status)).reduce((a,r)=>a+Number(r.draft_payload?.totals?.totalMinor??0),0),[invoices]);
  const outstanding=useMemo(()=>invoices.filter(r=>!["DRAFT","CANCELLED","VOID"].includes(r.status)).reduce((a,r)=>a+documentBalance(r,allocations),0),[invoices,allocations]);
- const collected=useMemo(()=>payments.filter(p=>p.status==="CONFIRMED").reduce((a,p)=>a+Number(p.amount_minor||0),0),[payments]);
  async function savePortal(enabled:boolean){
   if(!client)return;setPortalSaving(true);setPortalMessage("");
   try{const r=await fetch("/api/client-portal/config",{method:"PUT",headers:{"content-type":"application/json"},body:JSON.stringify({clientId:client.id,enabled,password:portalPassword,allowProfileEdit:false})});
