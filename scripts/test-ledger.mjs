@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import {allocationByDocument,confirmedPaymentTotal,documentBalance,isConfirmedPayment,isReceivable} from "../lib/financial/ledger.ts";
+import {allocationByDocument,confirmedPaymentTotal,documentBalance,isConfirmedPayment,isReceivable,creditAllocationByDocument} from "../lib/financial/ledger.ts";
 
 const confirmed={amount_minor:5000,status:"CONFIRMED",payment_allocations:[{document_id:"invoice-a",amount_minor:3000},{document_id:"invoice-b",amount_minor:2000}]};
 const second={amount_minor:2500,status:"CONFIRMED",payment_allocations:[{document_id:"invoice-a",amount_minor:2500}]};
@@ -24,3 +24,7 @@ assert.equal(isReceivable("PARTIALLY_PAID"),true);
 assert.equal(isReceivable("PAID"),true);
 
 console.log("ledger invariants: ok");
+
+const credits=creditAllocationByDocument([{invoice_id:"invoice-a",amount_minor:1000},{invoice_id:"invoice-a",amount_minor:500}]);
+assert.equal(documentBalance({id:"invoice-a",status:"SENT",draft_payload:{totals:{totalMinor:"10000"}}},allocations,credits),3000);
+assert.equal(documentBalance({id:"invoice-b",status:"SENT",draft_payload:{totals:{totalMinor:"2000"}}},allocations,credits),0);
