@@ -6,8 +6,7 @@
     "dev": "next dev",
     "build": "node -v && npm -v && next --version && next build --webpack",
     "start": "next start",
-    "typecheck": "tsc --noEmit",
-    "prebuild": "node scripts/prepare-pdf-font.mjs"
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "next": "16.3.8",
