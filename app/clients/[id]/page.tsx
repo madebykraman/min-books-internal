@@ -1,6 +1,6 @@
 "use client";
 import {useEffect,useMemo,useState} from "react";
-import {ArrowLeft,ArrowUpRight,FileText,Mail,Phone,ReceiptText,WalletCards} from "lucide-react";
+import {ArrowLeft,ArrowUpRight,FileText,Mail,Phone,ReceiptText,WalletCards,LockKeyhole,Check} from "lucide-react";
 import AppShell from "../../../components/AppShell";
 import styles from "./page.module.css";
 
@@ -11,8 +11,15 @@ const money=(minor?:string,currency="INR")=>new Intl.NumberFormat("en-IN",{style
 
 export default function ClientDetail({params}:{params:Promise<{id:string}>}){
  const [client,setClient]=useState<Client|null>(null),[invoices,setInvoices]=useState<Invoice[]>([]),[loading,setLoading]=useState(true),[error,setError]=useState("");
+ const [portalPassword,setPortalPassword]=useState(""),[portalSaving,setPortalSaving]=useState(false),[portalMessage,setPortalMessage]=useState("");
  useEffect(()=>{params.then(async({id})=>{try{const w=localStorage.getItem("finbooksos.workspace");if(!w)throw new Error("Workspace not selected");const [cr,ir]=await Promise.all([fetch("/api/clients?workspaceId="+encodeURIComponent(w)),fetch("/api/documents?workspaceId="+encodeURIComponent(w))]);const [c,i]=await Promise.all([cr.json(),ir.json()]);const found=(c.data??[]).find((x:Client)=>x.id===id);if(!found)throw new Error("Client not found");setClient(found);setInvoices((i.data??[]).filter((x:Invoice)=>x.clients?.name===found.name))}catch(e){setError(e instanceof Error?e.message:"Unable to load client")}finally{setLoading(false)}})},[params]);
  const value=useMemo(()=>invoices.reduce((a,r)=>a+Number(r.draft_payload?.totals?.totalMinor??0)/100,0),[invoices]);
+ async function savePortal(enabled:boolean){
+  if(!client)return;setPortalSaving(true);setPortalMessage("");
+  try{const r=await fetch("/api/client-portal/config",{method:"PUT",headers:{"content-type":"application/json"},body:JSON.stringify({clientId:client.id,enabled,password:portalPassword,allowProfileEdit:false})});
+   const d=await r.json();if(!r.ok)throw new Error(d.error);setClient({...client,...d.data});setPortalPassword("");setPortalMessage(enabled?"Portal enabled.":"Portal disabled.");
+  }catch(e){setPortalMessage(e instanceof Error?e.message:"Unable to update portal")}finally{setPortalSaving(false)}
+ }
  if(loading)return <AppShell title="Client"><div className={styles.empty}>Loading client…</div></AppShell>;
  if(error||!client)return <AppShell title="Client"><div className={styles.error}>{error||"Client not found"}<a href="/clients">Back to clients</a></div></AppShell>;
  return <AppShell title={client.name} subtitle={client.company??client.email??"Client relationship"} action={<a className={styles.primary} href="/invoices/new"><FileText size={13}/> New invoice</a>}>
@@ -21,5 +28,11 @@ export default function ClientDetail({params}:{params:Promise<{id:string}>}){
   <section className={styles.stats}><div><FileText size={15}/><span>Documents</span><b>{invoices.length}</b></div><div><WalletCards size={15}/><span>Document value</span><b>{money(String(Math.round(value*100)),client.preferred_currency??"INR")}</b></div><div><ReceiptText size={15}/><span>GSTIN</span><b>{client.gstin??"—"}</b></div></section>
   <div className={styles.grid}><section className={styles.panel}><header><div><span>Relationship ledger</span><h2>Invoices</h2></div></header><div className={styles.table}>{invoices.map(inv=><a className={styles.row} href={"/invoices/"+inv.id} key={inv.id}><span><b>{inv.document_number}</b><small>{inv.issue_date}{inv.due_date?" · Due "+inv.due_date:""}</small></span><i>{inv.status}</i><strong>{money(inv.draft_payload?.totals?.totalMinor,inv.currency)}</strong><ArrowUpRight size={13}/></a>)}{!invoices.length&&<div className={styles.empty}>No invoices are linked to this client yet.</div>}</div></section>
   <aside className={styles.panel}><header><div><span>Billing identity</span><h2>Details</h2></div></header><div className={styles.details}><div><span>Email</span><b>{client.email??"—"}</b></div><div><span>Phone</span><b>{client.phone??"—"}</b></div><div><span>GSTIN</span><b>{client.gstin??"—"}</b></div><div><span>Place of supply</span><b>{client.place_of_supply??"—"}</b></div><div><span>Billing address</span><b>{client.billing_address??"—"}</b></div></div></aside></div>
+  <section className={styles.panel}><header><div><span>Client access</span><h2>Secure portal</h2></div><LockKeyhole size={15}/></header><div className={styles.portalForm}>
+   <div><b>{client.portal_enabled?"Portal enabled":"Portal disabled"}</b><small>{client.portal_enabled?"/portal/"+client.portal_slug:"Clients cannot access financial records yet."}</small></div>
+   <label>New password<input type="password" value={portalPassword} onChange={e=>setPortalPassword(e.target.value)} placeholder={client.portal_enabled?"Leave blank to keep current password":"Set a portal password"}/></label>
+   <div className={styles.portalActions}>{client.portal_enabled&&<a href={"/portal/"+client.portal_slug} target="_blank" rel="noreferrer" className={styles.secondary}>Open portal</a>} {!client.portal_enabled&&<button className={styles.primary} disabled={portalSaving||!portalPassword} onClick={()=>savePortal(true)}>{portalSaving?"Saving…":"Enable portal"}</button>} {client.portal_enabled&&<button className={styles.secondary} disabled={portalSaving} onClick={()=>savePortal(false)}>Disable</button>}</div>
+   {portalMessage&&<p className={styles.portalMessage}>{portalMessage}</p>}
+  </div></section>
  </AppShell>
 }
