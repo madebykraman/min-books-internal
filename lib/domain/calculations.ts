@@ -44,7 +44,7 @@ export function validateInvoiceInput(items:unknown){
  return true;
 }
 
-export function calculateInvoiceTotals(lines:CalculationLine[]):InvoiceTotals{
+export function majorToMinor(value:number|string){\n const scaled=decimalToScaled(value);\n return divRound(scaled,10000n);\n}\n\nexport function calculateInvoiceTotals(lines:CalculationLine[]):InvoiceTotals{
  if(!Array.isArray(lines)||lines.length===0)throw new Error("Invoice must contain at least one line item");
  let subtotal=0n,tax=0n;
  for(const [index,line] of lines.entries()){
