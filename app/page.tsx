@@ -27,9 +27,9 @@ export default function Home(){
  const billed=useMemo(()=>receivables.reduce((s,r)=>s+total(r),0),[receivables]);
  const paid=useMemo(()=>confirmedPaymentTotal(payments),[payments]);
  const outstanding=useMemo(()=>receivables.reduce((s,r)=>s+documentBalance(r,allocations,creditAllocations),0),[receivables,allocations]);
- const overdueRows=useMemo(()=>receivables.filter(r=>r.due_date&&new Date(r.due_date+"T23:59:59")<new Date()&&documentBalance(r,allocations)>0),[receivables,allocations]);
- const overdue=useMemo(()=>overdueRows.reduce((s,r)=>s+documentBalance(r,allocations),0),[overdueRows,allocations]);
- const dueSoon=useMemo(()=>receivables.filter(r=>{if(!r.due_date||documentBalance(r,allocations)<=0)return false;const due=new Date(r.due_date+"T23:59:59");return due>=new Date()&&due<=new Date(Date.now()+7*86400000)}).reduce((s,r)=>s+documentBalance(r,allocations),0),[receivables,allocations]);
+ const overdueRows=useMemo(()=>receivables.filter(r=>r.due_date&&new Date(r.due_date+"T23:59:59")<new Date()&&documentBalance(r,allocations,creditAllocations)>0),[receivables,allocations]);
+ const overdue=useMemo(()=>overdueRows.reduce((s,r)=>s+documentBalance(r,allocations,creditAllocations),0),[overdueRows,allocations,creditAllocations]);
+ const dueSoon=useMemo(()=>receivables.filter(r=>{if(!r.due_date||documentBalance(r,allocations,creditAllocations)<=0)return false;const due=new Date(r.due_date+"T23:59:59");return due>=new Date()&&due<=new Date(Date.now()+7*86400000)}).reduce((s,r)=>s+documentBalance(r,allocations,creditAllocations),0),[receivables,allocations,creditAllocations]);
  const recent=rows.slice(0,6);const month=new Date().toLocaleDateString("en-IN",{month:"long"});
  const expenseTotal=expenses.filter(e=>e.status!=="VOID").reduce((s,e)=>s+Number(e.amount_minor||0),0);
  return <AppShell title="Overview" subtitle="Financial position, attention queue and recent movement." action={<a href="/invoices/new" className={styles.primary}><Plus size={14}/> New invoice</a>}>
