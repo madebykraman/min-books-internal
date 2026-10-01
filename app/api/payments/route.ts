@@ -24,7 +24,10 @@ export async function POST(request:Request){
   const amount=Number(body.amountMinor);
   if(!Number.isSafeInteger(amount)||amount<=0)return NextResponse.json({error:"Payment amount must be a positive integer in minor units"},{status:400});
   const paymentDate=typeof body.paymentDate==="string"&&body.paymentDate.trim()?body.paymentDate.trim():new Date().toISOString().slice(0,10);
-  if(!/^\d{4}-\d{2}-\d{2}$/.test(paymentDate)||Number.isNaN(Date.parse(paymentDate+"T00:00:00Z"))){
+  const dateMatch=/^(\d{4})-(\d{2})-(\d{2})$/.exec(paymentDate);
+  const parsedDate=dateMatch?new Date(Date.UTC(Number(dateMatch[1]),Number(dateMatch[2])-1,Number(dateMatch[3]))):null;
+  const validPaymentDate=!!dateMatch&&!!parsedDate&&parsedDate.getUTCFullYear()===Number(dateMatch[1])&&parsedDate.getUTCMonth()===Number(dateMatch[2])-1&&parsedDate.getUTCDate()===Number(dateMatch[3]);
+  if(!validPaymentDate){
     return NextResponse.json({error:"Payment date must be a valid YYYY-MM-DD date"},{status:400});
   }
   const methods=new Set(["BANK_TRANSFER","UPI","CARD","CASH","CHEQUE"]);
