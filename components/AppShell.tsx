@@ -10,7 +10,7 @@ import GlobalSearch from "./GlobalSearch";
 const nav=[
   ["Overview","/",LayoutDashboard],
   ["Invoices","/invoices",ReceiptText],
-  ["Clients","/clients",Users],
+  ["Clients","/clients",Users],\n  ["Projects","/projects",FolderKanban],
   ["Payments","/payments",WalletCards],
   ["Expenses","/expenses",CircleDollarSign],
   ["Catalog","/catalog",PackageOpen],
