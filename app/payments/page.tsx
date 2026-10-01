@@ -2,28 +2,29 @@
 import {useEffect,useMemo,useState} from "react";
 import {ArrowDownLeft,ArrowUpRight,Ban,CheckCircle2,Plus,Search,WalletCards,X} from "lucide-react";
 import AppShell from "../../components/AppShell";
-import {allocationByDocument,confirmedPaymentTotal,documentBalance,isConfirmedPayment} from "../../lib/financial/ledger";
+import {allocationByDocument,confirmedPaymentTotal,documentBalance,isConfirmedPayment,creditAllocationByDocument} from "../../lib/financial/ledger";
 import styles from "./page.module.css";
 
 type Invoice={id:string;document_number:string;status:string;due_date:string|null;currency:string;draft_payload?:{totals?:{totalMinor?:string}};clients?:{name?:string|null}};
+type Credit={credit_note_applications?:Array<{invoice_id:string;amount_minor:number}>};
 type Payment={id:string;payment_date:string;amount_minor:number;currency:string;method:string;reference:string|null;status:string;clients?:{name?:string|null};payment_allocations?:Array<{document_id:string;amount_minor:number;documents?:{document_number:string}|null}>};
 
 const money=(v:number|string|undefined,currency="INR")=>new Intl.NumberFormat("en-IN",{style:"currency",currency}).format(Number(v??0)/100);
 
 export default function Payments(){
- const [invoices,setInvoices]=useState<Invoice[]>([]),[payments,setPayments]=useState<Payment[]>([]),[q,setQ]=useState(""),[open,setOpen]=useState(false),[invoiceId,setInvoiceId]=useState(""),[amount,setAmount]=useState(""),[method,setMethod]=useState("BANK_TRANSFER"),[date,setDate]=useState(new Date().toISOString().slice(0,10)),[reference,setReference]=useState(""),[error,setError]=useState(""),[saving,setSaving]=useState(false),[voidingId,setVoidingId]=useState("");
+ const [invoices,setInvoices]=useState<Invoice[]>([]),[credits,setCredits]=useState<Credit[]>([]),[payments,setPayments]=useState<Payment[]>([]),[q,setQ]=useState(""),[open,setOpen]=useState(false),[invoiceId,setInvoiceId]=useState(""),[amount,setAmount]=useState(""),[method,setMethod]=useState("BANK_TRANSFER"),[date,setDate]=useState(new Date().toISOString().slice(0,10)),[reference,setReference]=useState(""),[error,setError]=useState(""),[saving,setSaving]=useState(false),[voidingId,setVoidingId]=useState("");
  const workspace=()=>localStorage.getItem("finbooksos.workspace");
- async function load(){const w=workspace();if(!w)return;const [ir,pr]=await Promise.all([fetch("/api/documents?workspaceId="+encodeURIComponent(w)+"&type=INVOICE"),fetch("/api/payments?workspaceId="+encodeURIComponent(w))]);const [id,pd]=await Promise.all([ir.json(),pr.json()]);if(!ir.ok)throw new Error(id.error||"Unable to load invoices");if(!pr.ok)throw new Error(pd.error||"Unable to load payments");setInvoices(id.data??[]);setPayments(pd.data??[])}
+ async function load(){const w=workspace();if(!w)return;const [ir,pr,cr]=await Promise.all([fetch("/api/documents?workspaceId="+encodeURIComponent(w)+"&type=INVOICE"),fetch("/api/payments?workspaceId="+encodeURIComponent(w)),fetch("/api/credit-notes?workspaceId="+encodeURIComponent(w))]);const [id,pd,cd]=await Promise.all([ir.json(),pr.json(),cr.json()]);if(!ir.ok)throw new Error(id.error||"Unable to load invoices");if(!pr.ok)throw new Error(pd.error||"Unable to load payments");setInvoices(id.data??[]);setPayments(pd.data??[]);setCredits(cd.data??[])}
  useEffect(()=>{load().catch(e=>setError(e instanceof Error?e.message:"Unable to load payments"))},[]);
- const allocations=useMemo(()=>allocationByDocument(payments),[payments]);
+ const allocations=useMemo(()=>allocationByDocument(payments),[payments]); const creditAllocations=useMemo(()=>creditAllocationByDocument(credits.flatMap(x=>x.credit_note_applications??[])),[credits]);
  const filtered=useMemo(()=>invoices.filter(r=>(r.clients?.name??"").toLowerCase().includes(q.toLowerCase())||r.document_number.toLowerCase().includes(q.toLowerCase())),[invoices,q]);
  const selected=invoices.find(x=>x.id===invoiceId);
  const invoiceTotal=Number(selected?.draft_payload?.totals?.totalMinor??0);
  const paidForSelected=invoiceId?(allocations.get(invoiceId)??0):0;
  const remaining=Math.max(invoiceTotal-paidForSelected,0);
  const recorded=useMemo(()=>confirmedPaymentTotal(payments),[payments]);
- const openBalance=useMemo(()=>invoices.filter(x=>!["DRAFT","CANCELLED","VOID"].includes(x.status)).reduce((sum,x)=>sum+documentBalance(x,allocations),0),[invoices,allocations]);
- const paidInvoiceValue=useMemo(()=>invoices.filter(x=>!["DRAFT","CANCELLED","VOID"].includes(x.status)&&documentBalance(x,allocations)===0).reduce((sum,x)=>sum+Number(x.draft_payload?.totals?.totalMinor??0),0),[invoices,allocations]);
+ const openBalance=useMemo(()=>invoices.filter(x=>!["DRAFT","CANCELLED","VOID"].includes(x.status)).reduce((sum,x)=>sum+documentBalance(x,allocations,creditAllocations),0),[invoices,allocations]);
+ const paidInvoiceValue=useMemo(()=>invoices.filter(x=>!["DRAFT","CANCELLED","VOID"].includes(x.status)&&documentBalance(x,allocations,creditAllocations)===0).reduce((sum,x)=>sum+Number(x.draft_payload?.totals?.totalMinor??0),0),[invoices,allocations]);
 
  async function record(){if(!invoiceId||!amount)return;setSaving(true);setError("");const r=await fetch("/api/payments",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({documentId:invoiceId,amountMinor:Math.round(Number(amount)*100),paymentDate:date,method,reference})});const d=await r.json();if(!r.ok){setError(d.error||"Unable to record payment");setSaving(false);return}setOpen(false);setAmount("");setReference("");setInvoiceId("");await load();setSaving(false)}
  async function voidPayment(payment:Payment){if(payment.status!=="CONFIRMED"||voidingId)return;if(!window.confirm("Void this payment? The invoice balance and status will be recomputed from the remaining confirmed allocations."))return;const reason=window.prompt("Reason for voiding this payment (optional):")??"";setVoidingId(payment.id);setError("");const r=await fetch("/api/payments/"+payment.id+"/void",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({reason})});const d=await r.json();if(!r.ok){setError(d.error||"Unable to void payment");setVoidingId("");return}await load();setVoidingId("")}
