@@ -1,0 +1,36 @@
+import {NextRequest,NextResponse} from "next/server";
+import {cookies} from "next/headers";
+import {createHash} from "node:crypto";
+import {PDFDocument,rgb} from "pdf-lib";
+import fontkit from "@pdf-lib/fontkit";
+import {readFile} from "node:fs/promises";
+import {join} from "node:path";
+import {createServiceClient} from "@/lib/supabase/service";
+
+const safe=(v:unknown)=>String(v??"").replace(/[\r\n\t]+/g," ");
+const money=(minor:number)=>"₹"+(minor/100).toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2});
+const date=(v:string|null|undefined)=>v?new Date(v+"T00:00:00").toLocaleDateString("en-IN",{day:"2-digit",month:"long",year:"numeric"}):"—";
+function wrap(value:string,font:any,size:number,width:number){const words=safe(value).split(/\s+/).filter(Boolean);const out:string[]=[];let line="";for(const word of words){const next=line?line+" "+word:word;if(!line||font.widthOfTextAtSize(next,size)<=width)line=next;else{out.push(line);line=word}}if(line)out.push(line);return out}
+function text(page:any,value:string,x:number,y:number,font:any,size:number,color:any){page.drawText(safe(value),{x,y,font,size,color})}
+function right(page:any,value:string,x:number,y:number,font:any,size:number,color:any){const s=safe(value);text(page,s,x-font.widthOfTextAtSize(s,size),y,font,size,color)}
+
+export async function GET(_request:NextRequest,{params}:{params:Promise<{slug:string;id:string}>}){
+ const {slug,id}=await params;const token=(await cookies()).get("client_portal_session")?.value;if(!token)return new NextResponse("Unauthorized",{status:401});
+ const supabase=createServiceClient();const hash=createHash("sha256").update(token).digest("hex");
+ const {data:session}=await supabase.from("client_portal_sessions").select("client_id").eq("token_hash",hash).gt("expires_at",new Date().toISOString()).maybeSingle();if(!session)return new NextResponse("Session expired",{status:401});
+ const {data:client}=await supabase.from("clients").select("*").eq("id",session.client_id).eq("portal_slug",slug).maybeSingle();if(!client||!client.portal_enabled)return new NextResponse("Portal unavailable",{status:403});
+ const {data:doc}=await supabase.from("documents").select("*,clients(*)").eq("id",id).eq("workspace_id",client.workspace_id).eq("client_id",client.id).eq("type","INVOICE").maybeSingle();if(!doc)return new NextResponse("Invoice not found",{status:404});
+ const {data:workspace}=await supabase.from("workspaces").select("organization_id").eq("id",client.workspace_id).maybeSingle();const {data:org}=workspace?.organization_id?await supabase.from("organizations").select("*").eq("id",workspace.organization_id).maybeSingle():{data:null};
+ const issuer:any=org??{};const payload:any=doc.draft_payload??{};const items=Array.isArray(payload.items)?payload.items:[];const totals=payload.totals??{};
+ const pdf=await PDFDocument.create();pdf.registerFontkit(fontkit);const regular=await pdf.embedFont(await readFile(join(process.cwd(),"public","fonts","Geist-Regular.ttf")),{subset:true});const semibold=await pdf.embedFont(await readFile(join(process.cwd(),"public","fonts","Geist-SemiBold.ttf")),{subset:true});const mono=await pdf.embedFont(await readFile(join(process.cwd(),"public","fonts","GeistMono-Regular.ttf")),{subset:true});
+ const page=pdf.addPage([595.2756,841.8898]);const black=rgb(.05,.05,.06),muted=rgb(.40,.40,.44),line=rgb(.78,.78,.80);let y=786;
+ text(page,String(issuer.name||issuer.legal_name||"Organisation"),48,y,semibold,15,black);right(page,"INVOICE",547,y,semibold,9,muted);right(page,String(doc.document_number),547,y-18,mono,12,black);right(page,date(doc.issue_date),547,y-36,regular,9,muted);y-=70;
+ page.drawLine({start:{x:48,y},end:{x:547,y},thickness:.6,color:line});y-=28;text(page,"BILLED TO",48,y,semibold,8,muted);y-=18;
+ const clientLines=[client.legal_name||client.name,client.email,client.phone,client.gstin?"GSTIN: "+client.gstin:""].filter(Boolean);clientLines.slice(0,5).forEach((v:string,i:number)=>text(page,v,48,y-i*13,i===0?semibold:regular,9,black));
+ y-=76;text(page,"DESCRIPTION",48,y,semibold,8,muted);right(page,"QTY",425,y,semibold,8,muted);right(page,"RATE",490,y,semibold,8,muted);right(page,"AMOUNT",547,y,semibold,8,muted);y-=10;page.drawLine({start:{x:48,y},end:{x:547,y},thickness:.7,color:black});y-=19;
+ for(const item of items){const i:any=item||{};const desc=wrap(i.description||i.title||"Untitled service",regular,8.5,330);const h=Math.max(20,desc.length*11);if(y-h<120){page.drawLine({start:{x:48,y:48},end:{x:547,y:48},thickness:.4,color:line});page.addPage();return new NextResponse("Invoice too long",{status:500})}desc.forEach((v:string,j:number)=>text(page,v,48,y-j*11,regular,8.5,black));right(page,String(i.qty??1),425,y,mono,8.5,black);right(page,i.rate==null||i.rate===""?"TBD":money(Math.round(Number(i.rate)*100)),490,y,mono,8.5,black);right(page,i.rate==null||i.rate===""?"TBD":money(Math.round(Number(i.qty??1)*Number(i.rate)*100)),547,y,mono,8.5,black);y-=h;page.drawLine({start:{x:48,y+7},end:{x:547,y+7},thickness:.25,color:line})}
+ if(y<190)y=190;page.drawLine({start:{x:48,y+8},end:{x:547,y+8},thickness:.7,color:black});y-=14;right(page,"SUBTOTAL",450,y,semibold,8,muted);right(page,money(Number(totals.subtotalMinor??0)),547,y,mono,9,black);y-=16;right(page,"TAX",450,y,semibold,8,muted);right(page,money(Number(totals.taxMinor??0)),547,y,mono,9,black);y-=20;right(page,"TOTAL",450,y,semibold,9,black);right(page,money(Number(totals.totalMinor??0)),547,y,mono,11,black);y-=32;
+ if(payload.note){text(page,"PAYMENT TERMS",48,y,semibold,8,muted);wrap(payload.note,regular,8.5,330).slice(0,3).forEach((v:string,j:number)=>text(page,v,48,y-14-j*11,regular,8.5,black))}
+ text(page,"This document is available through the secure client portal.",48,45,regular,7.5,muted);text(page,String(issuer.name||"Organisation"),48,33,regular,7.5,muted);
+ const bytes=await pdf.save();return new NextResponse(bytes,{headers:{"Content-Type":"application/pdf","Content-Disposition":\`attachment; filename="Invoice-\${safe(doc.document_number)}.pdf"\`,"Cache-Control":"private, no-store"}});
+}
