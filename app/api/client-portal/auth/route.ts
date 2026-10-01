@@ -2,7 +2,6 @@ import {NextResponse} from "next/server";
 import {cookies} from "next/headers";
 import {randomBytes,scryptSync,timingSafeEqual,createHash} from "node:crypto";
 import {createServiceClient} from "@/lib/supabase/service";
-import {hashPortalPassword} from "@/lib/client-portal/auth";
 
 function verify(password:string,encoded:string){
   const [scheme,saltHex,keyHex]=String(encoded).split("$");
