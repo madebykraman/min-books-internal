@@ -1,0 +1,19 @@
+"use client";
+import {useEffect,useState} from "react";
+import {Bell,Mail,Plus,Save} from "lucide-react";
+import AppShell from "../../components/AppShell";
+import styles from "./page.module.css";
+type Rule={id:string;name:string;trigger_type:string;days_offset:number;channel:string;enabled:boolean;template:string};
+export default function Automations(){
+ const [rows,setRows]=useState<Rule[]>([]),[open,setOpen]=useState(false),[name,setName]=useState("Friendly payment reminder"),[trigger,setTrigger]=useState("BEFORE_DUE"),[days,setDays]=useState("3"),[channel,setChannel]=useState("EMAIL"),[template,setTemplate]=useState("Payment reminder for {{invoice_number}} — {{amount_due}} is due on {{due_date}}."),[error,setError]=useState("");
+ async function load(){const w=localStorage.getItem("finbooksos.workspace");if(!w)return;const r=await fetch("/api/reminders?workspaceId="+encodeURIComponent(w));const d=await r.json();if(r.ok)setRows(d.data??[]);else setError(d.error||"Unable to load automations")}
+ useEffect(()=>{load().catch(()=>{})},[]);
+ async function save(){const w=localStorage.getItem("finbooksos.workspace");if(!w)return;const r=await fetch("/api/reminders",{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({workspaceId:w,name,triggerType:trigger,daysOffset:Number(days),channel,template})});const d=await r.json();if(!r.ok){setError(d.error||"Unable to save");return}setRows([...rows,d.data]);setOpen(false)}
+ return <AppShell title="Automations" subtitle="Define the follow-up rules that sit on top of your invoice lifecycle." action={<button className={styles.primary} onClick={()=>setOpen(true)}><Plus size={14}/> New rule</button>}>
+ <div className={styles.intro}><div className={styles.icon}><Bell size={17}/></div><div><b>Collections without manual chasing</b><span>Rules are stored separately from invoice state. Sending is a later delivery concern; the financial document remains the source of truth.</span></div></div>
+ <div className={styles.list}>{rows.map(r=><article className={styles.card} key={r.id}><span className={styles.ruleIcon}><Mail size={14}/></span><div><b>{r.name}</b><small>{r.trigger_type==="BEFORE_DUE"?`${r.days_offset} days before due`:r.trigger_type==="AFTER_DUE"?`${r.days_offset} days after due`:"On due date"} · {r.channel}</small><p>{r.template}</p></div><i className={r.enabled?styles.on:styles.off}>{r.enabled?"Active":"Paused"}</i></article>)}</div>
+ {!rows.length&&!error&&<div className={styles.empty}><Bell size={18}/><b>No reminder rules yet</b><span>Create a rule for due-date follow-up, then connect a delivery provider.</span></div>}
+ {error&&<div className={styles.error}>{error}</div>}
+ {open&&<div className={styles.overlay}><div className={styles.modal}><span className={styles.kicker}>Automations / New</span><h2>Payment reminder rule</h2><label>Rule name<input value={name} onChange={e=>setName(e.target.value)}/></label><div className={styles.formGrid}><label>Trigger<select value={trigger} onChange={e=>setTrigger(e.target.value)}><option value="BEFORE_DUE">Before due</option><option value="ON_DUE">On due date</option><option value="AFTER_DUE">After due</option></select></label><label>Days<input type="number" value={days} onChange={e=>setDays(e.target.value)}/></label></div><label>Channel<select value={channel} onChange={e=>setChannel(e.target.value)}><option value="EMAIL">Email</option><option value="WHATSAPP">WhatsApp</option><option value="IN_APP">In-app</option></select></label><label>Message template<textarea value={template} onChange={e=>setTemplate(e.target.value)} /></label><div className={styles.tokens}>Available tokens: invoice_number · amount_due · due_date</div><div className={styles.actions}><button onClick={()=>setOpen(false)}>Cancel</button><button className={styles.primary} onClick={save}><Save size={13}/> Save rule</button></div></div></div>}
+ </AppShell>
+}
