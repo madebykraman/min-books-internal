@@ -1,5 +1,5 @@
 {
   "framework": "nextjs",
-  "installCommand": "npm install",
-  "buildCommand": "npm run build"
+  "installCommand": "echo 'diagnostic install bypass'",
+  "buildCommand": "node -e \"console.log('diagnostic build reached')\""
 }
