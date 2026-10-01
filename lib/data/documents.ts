@@ -22,12 +22,12 @@ export async function getDocument(id:string){
   return data;
 }
 
-export async function saveDraft(input:{id?:string;workspaceId:string;clientId:string|null;documentNumber:string;issueDate:string;dueDate:string|null;currency:string;payload:Record<string,unknown>;actorUserId:string}){
+export async function saveDraft(input:{id?:string;workspaceId:string;clientId:string|null;projectId?:string|null;documentNumber:string;issueDate:string;dueDate:string|null;currency:string;payload:Record<string,unknown>;actorUserId:string}){
   const supabase=await createClient();
   if(input.id){
     const {data,error}=await supabase
       .from("documents")
-      .update({client_id:input.clientId,document_number:input.documentNumber,issue_date:input.issueDate,due_date:input.dueDate,draft_payload:input.payload,currency:input.currency})
+      .update({client_id:input.clientId,project_id:input.projectId??null,document_number:input.documentNumber,issue_date:input.issueDate,due_date:input.dueDate,draft_payload:input.payload,currency:input.currency})
       .eq("id",input.id).eq("workspace_id",input.workspaceId).select().single();
     if(error||!data) throw new Error(error?.message||"Unable to update draft");
     await supabase.from("document_events").insert({workspace_id:input.workspaceId,document_id:input.id,event_type:"DRAFT_SAVED",actor_user_id:input.actorUserId,metadata:{source:"editor"}});
@@ -35,7 +35,7 @@ export async function saveDraft(input:{id?:string;workspaceId:string;clientId:st
   }
   const {data,error}=await supabase
     .from("documents")
-    .insert({workspace_id:input.workspaceId,client_id:input.clientId,type:"INVOICE",status:"DRAFT",document_number:input.documentNumber,issue_date:input.issueDate,due_date:input.dueDate,currency:input.currency,draft_payload:input.payload,created_by:input.actorUserId})
+    .insert({workspace_id:input.workspaceId,client_id:input.clientId,project_id:input.projectId??null,type:"INVOICE",status:"DRAFT",document_number:input.documentNumber,issue_date:input.issueDate,due_date:input.dueDate,currency:input.currency,draft_payload:input.payload,created_by:input.actorUserId})
     .select().single();
   if(error||!data) throw new Error(error?.message||"Unable to create draft");
   await supabase.from("document_events").insert({workspace_id:input.workspaceId,document_id:data.id,event_type:"DRAFT_CREATED",actor_user_id:input.actorUserId,metadata:{source:"editor"}});
