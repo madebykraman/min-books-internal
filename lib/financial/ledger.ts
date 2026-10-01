@@ -52,3 +52,6 @@ export function confirmedPaymentTotal(payments: LedgerPayment[]) {
     0
   );
 }
+
+export type LedgerCreditApplication={invoice_id:string;amount_minor:number};
+export function creditAllocationByDocument(applications:LedgerCreditApplication[]){const totals=new Map<string,number>();for(const a of applications)totals.set(a.invoice_id,(totals.get(a.invoice_id)??0)+Number(a.amount_minor||0));return totals;}
