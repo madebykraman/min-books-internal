@@ -19,13 +19,13 @@ export default function Reports(){
  const allocations=useMemo(()=>allocationByDocument(payments),[payments]);
  const receivables=useMemo(()=>rows.filter(r=>isReceivable(r.status)),[rows]);
  const total=useMemo(()=>receivables.reduce((a,r)=>a+n(r),0),[receivables]);
- const open=useMemo(()=>receivables.reduce((a,r)=>a+documentBalance(r,allocations)/100,0),[receivables,allocations]);
- const paid=useMemo(()=>receivables.filter(r=>documentBalance(r,allocations)===0).reduce((a,r)=>a+n(r),0),[receivables,allocations]);
+ const collectedAgainstReceivables=useMemo(()=>receivables.reduce((a,r)=>a+(allocations.get(r.id)??0)/100,0),[receivables,allocations]);
+ const overdue=useMemo(()=>receivables.filter(r=>r.status==="OVERDUE").reduce((a,r)=>a+documentBalance(r,allocations)/100,0),[receivables,allocations]);
+ const open=useMemo(()=>receivables.filter(r=>r.status!=="OVERDUE").reduce((a,r)=>a+documentBalance(r,allocations)/100,0),[receivables,allocations]);
  const collected=useMemo(()=>confirmedPaymentTotal(payments)/100,[payments]);
  const spent=useMemo(()=>expenses.filter(r=>r.status!=="VOID").reduce((a,r)=>a+Number(r.amount_minor)/100,0),[expenses]);
  const net=collected-spent;
- const overdue=useMemo(()=>receivables.filter(r=>r.status==="OVERDUE").reduce((a,r)=>a+documentBalance(r,allocations)/100,0),[receivables,allocations]);
- const exportCsv=()=>{const lines=[["Metric","Value"],["Receivable document value",total],["Fully collected invoice value",paid],["Open receivable balance",open],["Recorded confirmed payments",collected],["Recorded expenses",spent],["Net recorded cash",net],["Overdue receivable balance",overdue]].map(r=>r.map(v=>"\""+String(v).replaceAll("\"","\"\"")+"\"").join(","));const blob=new Blob([lines.join("\n")],{type:"text/csv;charset=utf-8"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="finbooksos-report.csv";a.click();URL.revokeObjectURL(url)};
+ const exportCsv=()=>{const lines=[["Metric","Value"],["Receivable document value",total],["Allocated collections against receivables",collectedAgainstReceivables],["Open receivable balance",open],["Recorded confirmed payments",collected],["Recorded expenses",spent],["Net recorded cash",net],["Overdue receivable balance",overdue]].map(r=>r.map(v=>"\""+String(v).replaceAll("\"","\"\"")+"\"").join(","));const blob=new Blob([lines.join("\n")],{type:"text/csv;charset=utf-8"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="finbooksos-report.csv";a.click();URL.revokeObjectURL(url)};
  return <AppShell title="Reports" subtitle="A compact financial view built from your document, payment and expense ledgers." action={<button className={styles.export} onClick={exportCsv} disabled={loading}><Download size={13}/> Export CSV</button>}>
   <section className={styles.stats}>
    <div><span>Document value</span><b>{money(total)}</b><small>Across {receivables.length} receivable documents</small></div>
@@ -34,7 +34,7 @@ export default function Reports(){
    <div><span>Net recorded cash</span><b className={net>=0?styles.positive:styles.negative}>{money(net)}</b><small><WalletCards size={10}/> Collections minus expenses</small></div>
   </section>
   <div className={styles.grid}>
-   <section className={styles.panel}><header><div><span>Receivables</span><h2>Invoice value by balance</h2></div><BarChart3 size={15}/></header><div className={styles.bars}>{[["Collected",paid,"green"],["Open",open,"purple"],["Overdue",overdue,"red"]].map(([label,value,tone])=><div key={String(label)}><span>{String(label)}</span><div className={styles.track}><i className={styles[String(tone)]} style={{width:total?Math.max(4,Number(value)/total*100)+"%":"4%"}}/></div><b>{money(Number(value))}</b></div>)}</div></section>
+   <section className={styles.panel}><header><div><span>Receivables</span><h2>Invoice value by balance</h2></div><BarChart3 size={15}/></header><div className={styles.bars}>{[["Collected",collectedAgainstReceivables,"green"],["Open",open,"purple"],["Overdue",overdue,"red"]].map(([label,value,tone])=><div key={String(label)}><span>{String(label)}</span><div className={styles.track}><i className={styles[String(tone)]} style={{width:total?Math.max(4,Number(value)/total*100)+"%":"4%"}}/></div><b>{money(Number(value))}</b></div>)}</div></section>
    <section className={styles.panel}><header><div><span>Ledger interpretation</span><h2>What the numbers mean</h2></div></header><div className={styles.notes}><p><b>Document value</b> is the current value of receivable invoice records, excluding drafts, cancelled and void documents.</p><p><b>Recorded collections</b> come from confirmed payment allocations. They are the operational cash ledger, not a gateway settlement report.</p><p><b>Open receivable balance</b> is document value less confirmed allocations, never a raw payment total.</p><p><b>Net recorded cash</b> is confirmed collections less non-void recorded expenses. Tax, period locking and reconciliation remain separate layers.</p></div></section>
   </div>
   <section className={styles.panel+" "+styles.activity}><header><div><span>Recent cash activity</span><h2>Payments and expenses</h2></div><span>{loading?"Loading…":payments.length+expenses.length+" entries"}</span></header><div className={styles.cashRows}>
