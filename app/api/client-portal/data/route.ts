@@ -14,17 +14,21 @@ export async function GET(request:Request){
     if(!session)return NextResponse.json({error:"Portal session expired."},{status:401});
     const {data:client}=await supabase.from("clients").select("*").eq("id",session.client_id).eq("portal_slug",slug).maybeSingle();
     if(!client||!client.portal_enabled)return NextResponse.json({error:"Portal unavailable."},{status:403});
-    const [{data:workspace},{data:invoices},{data:payments},{data:projects}]=await Promise.all([
+    const [{data:workspace},{data:invoices},{data:payments},{data:allocations},{data:projects}]=await Promise.all([
       supabase.from("workspaces").select("id,organization_id").eq("id",client.workspace_id).maybeSingle(),
       supabase.from("documents").select("id,document_number,status,issue_date,due_date,currency,draft_payload,updated_at").eq("workspace_id",client.workspace_id).eq("client_id",client.id).eq("type","INVOICE").order("issue_date",{ascending:false}),
       supabase.from("payments").select("id,payment_date,amount_minor,currency,method,reference,notes").eq("workspace_id",client.workspace_id).eq("client_id",client.id).order("payment_date",{ascending:false}),
+      supabase.from("payment_allocations").select("payment_id,document_id,amount_minor"),
       supabase.from("projects").select("*").eq("workspace_id",client.workspace_id).eq("client_id",client.id).order("created_at",{ascending:false})
     ]);
     const {data:organization}=workspace?.organization_id?await supabase.from("organizations").select("*").eq("id",workspace.organization_id).maybeSingle():{data:null};
     const invoiceRows=(invoices??[]).map((i:any)=>{
       const total=Number(i.draft_payload?.totals?.totalMinor??0)/100;
-      return {...i,total,paid:0,balance:total,is_overdue:Boolean(i.due_date&&new Date(i.due_date)<new Date()&&total>0&&i.status!=="PAID"),project_name:null,contents:(i.draft_payload?.items??[]).map((x:any,index:number)=>({...x,id:String(index+1)}))};
+      const paidMinor=(allocations??[]).filter((a:any)=>a.document_id===i.id).reduce((s:number,a:any)=>s+Number(a.amount_minor||0),0);
+      const paid=paidMinor/100;
+      return {...i,total,paid,balance:Math.max(total-paid,0),is_overdue:Boolean(i.due_date&&new Date(i.due_date)<new Date()&&total-paid>0&&i.status!=="PAID"),project_name:null,contents:(i.draft_payload?.items??[]).map((x:any,index:number)=>({...x,id:String(index+1)}))};
     });
-    return NextResponse.json({organization,client,invoices:invoiceRows,payments:payments??[],projects:projects??[],documents:[],activity:[]});
+    const paymentRows=(payments??[]).map((p:any)=>({...p,amount:Number(p.amount_minor||0)/100}));
+    return NextResponse.json({organization,client,invoices:invoiceRows,payments:paymentRows,projects:projects??[],documents:[],activity:[]});
   }catch(error){return NextResponse.json({error:error instanceof Error?error.message:"Unable to open portal"},{status:500})}
 }
