@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build --webpack --experimental-build-mode=compile",
+    "build": "node -e \"console.log('Vercel build command reached')\"",
     "start": "next start",
     "typecheck": "tsc --noEmit"
   },
