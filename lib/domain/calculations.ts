@@ -27,6 +27,20 @@ export function validateCalculationLine(line:CalculationLine,index=0){
  return true;
 }
 
+export function validateInvoiceInput(items:unknown){
+ if(!Array.isArray(items)||items.length===0)throw new Error("Invoice must contain at least one line item");
+ items.forEach((item:any,index)=>{
+  const quantity=String(item?.qty??item?.quantity??"").trim();
+  const rate=String(item?.rate??item?.unitPrice??"").trim();
+  const tax=String(item?.tax??item?.taxRate??"").trim();
+  if(!quantity||!/^\+?\d+(?:\.\d+)?$/.test(quantity)||Number(quantity)<=0)throw new Error(`Line ${index+1}: quantity must be greater than zero`);
+  if(!rate||!/^\+?\d+(?:\.\d+)?$/.test(rate)||Number(rate)<0)throw new Error(`Line ${index+1}: rate cannot be negative or invalid`);
+  if(!tax||!/^\+?\d+(?:\.\d+)?$/.test(tax)||Number(tax)<0||Number(tax)>100)throw new Error(`Line ${index+1}: tax rate must be between 0% and 100%`);
+  if(String(item?.description??item?.title??"").trim().length>1000)throw new Error(`Line ${index+1}: description is too long`);
+ });
+ return true;
+}
+
 export function calculateInvoiceTotals(lines:CalculationLine[]):InvoiceTotals{
  if(!Array.isArray(lines)||lines.length===0)throw new Error("Invoice must contain at least one line item");
  let subtotal=0n,tax=0n;
