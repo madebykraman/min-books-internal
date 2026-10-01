@@ -30,7 +30,7 @@ Important financial actions require feedback. Destructive actions require protec
 
 ## Invoice vertical slice contract
 
-The invoice creation slice supports existing/new client selection, invoice metadata, line-item CRUD, quantity × rate, discount/tax foundations, centralized rounding, draft persistence, live preview, autosave feedback, keyboard navigation, responsive/mobile layout and validation.
+The invoice creation slice supports existing/new client selection, invoice metadata, line-item CRUD, quantity × rate, discount/tax foundations, centralized rounding, draft persistence, issued-document rendering, autosave feedback, keyboard navigation, responsive/mobile layout and validation.
 
 It does not silently issue invoices, own payment state, implement e-invoicing or put team permissions into the editor.
 
