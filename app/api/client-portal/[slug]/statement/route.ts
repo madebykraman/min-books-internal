@@ -17,7 +17,7 @@ export async function GET(request:NextRequest,{params}:{params:Promise<{slug:str
  const {data:session}=await supabase.from("client_portal_sessions").select("client_id").eq("token_hash",hash).gt("expires_at",new Date().toISOString()).maybeSingle();
  if(!session)return new NextResponse("Session expired",{status:401});
  const {data:client}=await supabase.from("clients").select("*").eq("id",session.client_id).eq("portal_slug",slug).maybeSingle();
- if(!client)return new NextResponse("Portal unavailable",{status:404});
+ if(!client||!client.portal_enabled)return new NextResponse("Portal unavailable",{status:403});
  const [{data:workspace},{data:invoices},{data:payments}]=await Promise.all([
    supabase.from("workspaces").select("organization_id").eq("id",client.workspace_id).maybeSingle(),
    supabase.from("documents").select("id,document_number,issue_date,draft_payload").eq("workspace_id",client.workspace_id).eq("client_id",client.id).eq("type","INVOICE").order("issue_date"),
