@@ -38,9 +38,10 @@ export const documentTotal = (document: LedgerDocument) =>
 
 export function documentBalance(
   document: LedgerDocument,
-  allocations: Map<string, number>
+  allocations: Map<string, number>,
+  credits: Map<string, number> = new Map()
 ) {
-  return Math.max(documentTotal(document) - (allocations.get(document.id) ?? 0), 0);
+  return Math.max(documentTotal(document) - (allocations.get(document.id) ?? 0) - (credits.get(document.id) ?? 0), 0);
 }
 
 export const isReceivable = (status: string) =>
