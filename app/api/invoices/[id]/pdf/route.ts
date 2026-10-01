@@ -3,11 +3,13 @@ import { PDFDocument, rgb } from "pdf-lib";
 import fontkit from "@pdf-lib/fontkit";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
-import { createClient } from "@/lib/supabase/server";\nimport {calculateInvoiceTotals,majorToMinor} from "@/lib/domain/calculations";
+import { createClient } from "@/lib/supabase/server";
+import {calculateInvoiceTotals,majorToMinor} from "@/lib/domain/calculations";
 
 const PAGE = { width: 595.2756, height: 841.8898 };
 const BLACK = rgb(0.05,0.05,0.06), MUTED = rgb(0.40,0.40,0.44), LINE = rgb(0.78,0.78,0.80);
-const safe=(v:unknown)=>String(v??"").replace(/[\r\n\t]+/g, " ");
+const safe=(v:unknown)=>String(v??"").replace(/[\r
+\t]+/g, " ");
 const money=(minor:number)=>"₹"+(minor/100).toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2});
 const date=(v:string|null|undefined)=>v?new Date(v+"T00:00:00").toLocaleDateString("en-IN",{day:"2-digit",month:"long",year:"numeric"}):"—";
 function wrap(text:string,font:any,size:number,width:number){const words=safe(text).split(/\s+/).filter(Boolean);const out:string[]=[];let line="";for(const word of words){const next=line?line+" "+word:word;if(!line||font.widthOfTextAtSize(next,size)<=width)line=next;else{out.push(line);line=word}}if(line)out.push(line);return out}
@@ -43,7 +45,7 @@ export async function GET(_request:NextRequest,{params}:{params:Promise<{id:stri
   const orgLogo=await imageFromUrl(pdf,issuer.logo_url??null);
   if(orgLogo){const d=orgLogo.scale(Math.min(40/orgLogo.width,40/orgLogo.height));page.drawImage(orgLogo,{x:48,y:y-d.height+7,width:d.width,height:d.height})}
   text(page,safe(issuer.display_name||issuer.name||issuer.legal_name||""),48+(orgLogo?50:0),y,semibold,15);
-  right(page,"INVOICE",547,y,semibold,9,MUTED);right(page,safe(doc.document_number),547,y-18,mono,12);right(page,date(doc.issue_date),547,y-36,regular,9,MUTED);
+  right(page,doc.type==="QUOTE"?"QUOTE":"INVOICE",547,y,semibold,9,MUTED);right(page,safe(doc.document_number),547,y-18,mono,12);right(page,date(doc.issue_date),547,y-36,regular,9,MUTED);
   y-=70;page.drawLine({start:{x:48,y},end:{x:547,y},thickness:.6,color:LINE});y-=26;
   text(page,"BILLED TO",48,y,semibold,8,MUTED);text(page,"PAY TO",320,y,semibold,8,MUTED);y-=17;
   const client:any=snapshot.recipient??doc.clients??{};const clientLines=[client.legal_name||client.name||"Client",client.email||"",client.phone||"",client.gstin?"GSTIN: "+client.gstin:"",client.pan?"PAN: "+client.pan:""].filter(Boolean);
@@ -73,5 +75,5 @@ export async function GET(_request:NextRequest,{params}:{params:Promise<{id:stri
   drawFooter();
 
   const bytes=await pdf.save();
-  return new NextResponse(bytes,{headers:{"Content-Type":"application/pdf","Content-Disposition":`attachment; filename="Invoice-${safe(doc.document_number)}.pdf"`,"Cache-Control":"private, no-store"}});
+  return new NextResponse(bytes,{headers:{"Content-Type":"application/pdf","Content-Disposition":`attachment; filename="${doc.type==="QUOTE"?"Quote":"Invoice"}-${safe(doc.document_number)}.pdf"`,"Cache-Control":"private, no-store"}});
 }
