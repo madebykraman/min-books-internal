@@ -113,17 +113,19 @@ Gate: invoice → issue → public → payment → receipt remains one coherent,
 
 Gate: user can operate an ongoing client relationship without leaving the workspace. P1 Business OS continuity is implemented on main; remaining production gates are verification/hardening rather than missing P1 breadth.
 
-### P2 — India-ready financial operations
-1. GST profile and tax rule model.
-2. CGST/SGST/IGST handling.
-3. Place-of-supply validation.
-4. Tax-inclusive/exclusive modes.
-5. HSN/SAC.
-6. GST reporting foundations.
-7. E-invoice/e-way integration architecture only after compliance catalogue is explicit.
-8. Compliance warnings and document validation.
+### P2 — India-ready financial operations — COMPLETE ON MAIN
+1. [x] GST profile and tax rule model.
+2. [x] CGST/SGST/IGST handling.
+3. [x] Place-of-supply validation.
+4. [x] Tax-inclusive/exclusive modes.
+5. [x] HSN/SAC capture and validation.
+6. [x] GST reporting foundation with B2B/B2C and HSN summaries.
+7. [x] Provider-neutral e-invoice/e-way submission architecture after explicit compliance catalogue.
+8. [x] Compliance warnings, immutable tax snapshots and document validation.
+9. [x] Versioned compliance catalogue with source/effective-date metadata.
+10. [x] Workspace tax rules consumed by invoice authoring rather than hard-coded rate lists.
 
-Gate: compliance rules are data-driven and never embedded ad hoc in UI.
+Gate: compliance rules are data-driven and never embedded ad hoc in UI. P2 implementation is complete; live Supabase migration/provider verification remains an environment gate.
 
 ### P3 — Reporting, automation and portability
 1. Period-aware reporting.
@@ -176,4 +178,4 @@ On-demand audit loop:
 
 ## Current active layer
 
-P1 Business OS continuity → complete on `main`: projects, quotes/conversion, credit notes, recurring invoices, reminder execution architecture, delivery states, shared timelines and command actions. Remaining gates are environment-bound P0 verification and P5 production hardening. Remaining P0 exit checks are environment-bound: the latest hardening commits must pass GitHub CI, then the actual Vercel project/session and the user's FinBooksOS Supabase migration state must be verified. Static migration audit confirms workspace-scoped RLS on core financial tables and security-definer payment mutations with membership checks.
+P2 India-ready financial operations → implementation complete on `main`: projects, quotes/conversion, credit notes, recurring invoices, reminder execution architecture, delivery states, shared timelines and command actions. Remaining gates are environment-bound P0 verification and P5 production hardening. Remaining P0 exit checks are environment-bound: the latest hardening commits must pass GitHub CI, then the actual Vercel project/session and the user's FinBooksOS Supabase migration state must be verified. Static migration audit confirms workspace-scoped RLS on core financial tables and security-definer payment mutations with membership checks.
