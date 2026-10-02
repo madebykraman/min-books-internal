@@ -1,4 +1,0 @@
-import crypto from "node:crypto";
-import type {SupabaseClient} from "@supabase/supabase-js";
-export async function queueIntegrationEvent(supabase:SupabaseClient,input:{workspaceId:string;eventType:string;aggregateType:string;aggregateId?:string|null;payload?:Record<string,unknown>}){const {data,error}=await supabase.from("integration_events").insert({workspace_id:input.workspaceId,event_type:input.eventType,aggregate_type:input.aggregateType,aggregate_id:input.aggregateId??null,payload:input.payload??{}}).select().single();if(error)throw new Error(error.message);return data}
-export function signWebhook(body:string){const secret=process.env.FINBOOKS_WEBHOOK_SIGNING_SECRET;if(!secret)throw new Error("Webhook signing secret is not configured");return crypto.createHmac("sha256",secret).update(body).digest("hex")}
