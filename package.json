@@ -8,9 +8,9 @@
     "start": "next start",
     "typecheck": "tsc --noEmit",
     "prebuild": "node scripts/prepare-pdf-font.mjs",
-    "test:ledger": "node --test scripts/test-ledger.mjs",
-    "test:calculations": "node --test scripts/test-calculations.mjs",
-    "test:india-tax": "node --test scripts/test-india-tax.mjs",
+    "test:ledger": "node --experimental-strip-types --test scripts/test-ledger.mjs",
+    "test:calculations": "node --experimental-strip-types --test scripts/test-calculations.mjs",
+    "test:india-tax": "node --experimental-strip-types --test scripts/test-india-tax.mjs",
     "test:all": "npm run test:calculations && npm run test:ledger && npm run test:india-tax"
   },
   "dependencies": {
