@@ -14,12 +14,14 @@ const nav=[
   ["Credit notes","/credit-notes",FileMinus],
   ["Recurring","/recurring",CalendarClock],
   ["Reminders","/reminders",BellRing],
-  ["Clients","/clients",Users],\n  ["Projects","/projects",FolderKanban],
+  ["Clients","/clients",Users],
+  ["Projects","/projects",FolderKanban],
   ["Payments","/payments",WalletCards],
   ["Expenses","/expenses",CircleDollarSign],
   ["Catalog","/catalog",PackageOpen],
   ["Automations","/automations",Workflow],
-  ["Reports","/reports",FileBarChart2],\n  ["GST & compliance","/gst",Landmark],
+  ["Reports","/reports",FileBarChart2],
+  ["GST & compliance","/gst",Landmark],
 ] as const;
 
 type Org={id:string;name:string;legal_name?:string|null;logo_url?:string|null;accent_hex?:string|null;workspaces?:{id:string}[]};
