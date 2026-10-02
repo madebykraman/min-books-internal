@@ -25,8 +25,7 @@ export default function Reports(){
  const collected=useMemo(()=>confirmedPaymentTotal(payments)/100,[payments]);
  const spent=useMemo(()=>expenses.filter(r=>r.status!=="VOID").reduce((a,r)=>a+Number(r.amount_minor)/100,0),[expenses]);
  const net=collected-spent;
- const exportCsv=()=>{const lines=[["Metric","Value"],["Receivable document value",total],["Allocated collections against receivables",collectedAgainstReceivables],["Open receivable balance",open],["Recorded confirmed payments",collected],["Recorded expenses",spent],["Net recorded cash",net],["Overdue receivable balance",overdue]].map(r=>r.map(v=>"\""+String(v).replaceAll("\"","\"\"")+"\"").join(","));const blob=new Blob([lines.join("
-")],{type:"text/csv;charset=utf-8"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="finbooksos-report.csv";a.click();URL.revokeObjectURL(url)};
+ const exportCsv=()=>{const lines=[["Metric","Value"],["Receivable document value",total],["Allocated collections against receivables",collectedAgainstReceivables],["Open receivable balance",open],["Recorded confirmed payments",collected],["Recorded expenses",spent],["Net recorded cash",net],["Overdue receivable balance",overdue]].map(r=>r.map(v=>"\""+String(v).replaceAll("\"","\"\"")+"\"").join(","));const blob=new Blob([lines.join("\\n")],{type:"text/csv;charset=utf-8"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="finbooksos-report.csv";a.click();URL.revokeObjectURL(url)};
  return <AppShell title="Reports" subtitle="A compact financial view built from your document, payment and expense ledgers." action={<button className={styles.export} onClick={exportCsv} disabled={loading}><Download size={13}/> Export CSV</button>}>
   <section className={styles.stats}>
    <div><span>Document value</span><b>{money(total)}</b><small>Across {receivables.length} receivable documents</small></div>
