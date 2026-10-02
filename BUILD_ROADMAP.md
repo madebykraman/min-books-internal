@@ -127,18 +127,21 @@ Gate: user can operate an ongoing client relationship without leaving the worksp
 
 Gate: compliance rules are data-driven and never embedded ad hoc in UI. P2 implementation is complete; live Supabase migration/provider verification remains an environment gate.
 
-### P3 — Reporting, automation and portability
-1. Period-aware reporting.
-2. Receivables ageing.
-3. Cashflow view.
-4. Exportable operational datasets.
-5. Reminder execution engine.
-6. Delivery providers.
-7. Webhooks/integration events.
-8. API surface.
-9. Import/export portability.
+### P3 — Reporting, automation and portability — COMPLETE ON MAIN
+1. [x] Period-aware reporting with previous-period comparison.
+2. [x] Receivables ageing with reproducible as-of dates and credit/payment reconciliation.
+3. [x] Cashflow view by actual transaction date.
+4. [x] Versioned exportable operational datasets, including integration/automation records.
+5. [x] Reminder execution and provider dispatch.
+6. [x] Document delivery provider dispatch and delivery state reconciliation.
+7. [x] Webhook integration-event outbox and signed dispatch.
+8. [x] Scoped REST-shaped API v1 using hashed workspace API keys.
+9. [x] Workspace package restore for master data with financial-history immutability guard.
+10. [x] Recurring invoice due-run automation with month-end-safe recurrence.
+11. [x] Unified automation runner for recurring invoices, reminders and webhook dispatch.
+12. [x] P3 invariant coverage in CI.
 
-Gate: financial records remain portable, auditable and operationally useful.
+Gate: financial records remain portable, auditable and operationally useful. P3 implementation is complete; live provider/Supabase/Vercel verification remains environment-bound.
 
 ### P4 — AI assistance
 1. Natural-language invoice drafting.
@@ -178,4 +181,4 @@ On-demand audit loop:
 
 ## Current active layer
 
-P2 India-ready financial operations → implementation complete on `main`: projects, quotes/conversion, credit notes, recurring invoices, reminder execution architecture, delivery states, shared timelines and command actions. Remaining gates are environment-bound P0 verification and P5 production hardening. Remaining P0 exit checks are environment-bound: the latest hardening commits must pass GitHub CI, then the actual Vercel project/session and the user's FinBooksOS Supabase migration state must be verified. Static migration audit confirms workspace-scoped RLS on core financial tables and security-definer payment mutations with membership checks.
+P3 reporting, automation and portability → implementation complete on `main`: projects, quotes/conversion, credit notes, recurring invoices, reminder execution architecture, delivery states, shared timelines and command actions. Remaining gates are environment-bound P0 verification and P5 production hardening. Remaining P0 exit checks are environment-bound: the latest hardening commits must pass GitHub CI, then the actual Vercel project/session and the user's FinBooksOS Supabase migration state must be verified. Static migration audit confirms workspace-scoped RLS on core financial tables and security-definer payment mutations with membership checks.
