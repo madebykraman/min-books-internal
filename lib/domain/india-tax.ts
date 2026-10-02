@@ -99,7 +99,7 @@ export function calculateIndiaInvoiceTotals(lines:IndiaTaxLine[],ctx:IndiaTaxCon
    const taxRateMinor=rate;
    const base=ctx.taxMode==="INCLUSIVE"?inclusiveBase(gross,line.taxRate):gross;
    const tax=ctx.taxMode==="INCLUSIVE"?gross-base:round(base*taxRateMinor,100n*SCALE);
-   const local=supplyType==="INTRA_STATE"||supplyType==="SEZ";
+   const local=supplyType==="INTRA_STATE";
    const lineCgst=local&&!ctx.reverseCharge?round(tax,2n):0n;
    const lineSgst=local&&!ctx.reverseCharge?tax-lineCgst:0n;
    const lineIgst=!local||ctx.reverseCharge?tax:0n;
