@@ -80,7 +80,7 @@ export function validateIndiaTaxContext(ctx:IndiaTaxContext){
 function inclusiveBase(gross:bigint,rate:number|string){
  const r=scaled(rate);
  if(r===0n)return gross;
- return round(gross*SCALE,SCALE+r);
+ return round(gross*100n*SCALE,100n*SCALE+r);
 }
 
 export function calculateIndiaInvoiceTotals(lines:IndiaTaxLine[],ctx:IndiaTaxContext):IndiaInvoiceTotals{
