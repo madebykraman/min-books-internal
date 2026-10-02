@@ -7,8 +7,7 @@ import {readFile} from "node:fs/promises";
 import {join} from "node:path";
 import {createServiceClient} from "@/lib/supabase/service";
 
-const safe=(v:unknown)=>String(v??"").replace(/[\r
-\t]+/g," ");
+const safe=(v:unknown)=>String(v??"").replace(/[\r\n\t]+/g," ");
 const money=(minor:number)=>"₹"+(minor/100).toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2});
 const date=(v:string|null|undefined)=>v?new Date(v+"T00:00:00").toLocaleDateString("en-IN",{day:"2-digit",month:"long",year:"numeric"}):"—";
 function wrap(value:string,font:any,size:number,width:number){const words=safe(value).split(/\s+/).filter(Boolean);const out:string[]=[];let line="";for(const word of words){const next=line?line+" "+word:word;if(!line||font.widthOfTextAtSize(next,size)<=width)line=next;else{out.push(line);line=word}}if(line)out.push(line);return out}
