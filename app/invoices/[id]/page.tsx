@@ -1,7 +1,8 @@
 "use client";
 import {useEffect,useMemo,useState} from "react";
 import {ArrowLeft,Download,ExternalLink,Clock3,CircleDollarSign,ReceiptText} from "lucide-react";
-import AppShell from "../../../components/AppShell";\nimport {calculateInvoiceTotals,majorToMinor} from "../../../lib/domain/calculations";
+import AppShell from "../../../components/AppShell";
+import {calculateInvoiceTotals,majorToMinor} from "../../../lib/domain/calculations";
 import styles from "./page.module.css";
 
 type DocumentData={id:string;document_number:string;status:string;issue_date:string;due_date:string|null;currency:string;draft_payload?:{items?:Array<{description?:string;title?:string;qty?:string|number;rate?:string|number;tax?:string|number}>;note?:string;totals?:{subtotalMinor?:string;taxMinor?:string;totalMinor?:string}};clients?:{name?:string;email?:string;address?:string;gstin?:string};document_events?:Array<{id:string;event_type:string;created_at:string}>;document_versions?:Array<{id:string;version:number;created_at:string;immutable:boolean;payload?:{items?:Array<{description?:string;title?:string;qty?:string|number;rate?:string|number;tax?:string|number}>;note?:string;totals?:{subtotalMinor?:string;taxMinor?:string;totalMinor?:string}}}>;public_token?:string|null;delivery_status?:string;delivery_channel?:string|null};
