@@ -8,8 +8,7 @@ import {calculateInvoiceTotals,majorToMinor} from "@/lib/domain/calculations";
 
 const PAGE = { width: 595.2756, height: 841.8898 };
 const BLACK = rgb(0.05,0.05,0.06), MUTED = rgb(0.40,0.40,0.44), LINE = rgb(0.78,0.78,0.80);
-const safe=(v:unknown)=>String(v??"").replace(/[\r
-\t]+/g, " ");
+const safe=(v:unknown)=>String(v??"").replace(/[\r\n\t]+/g, " ");
 const money=(minor:number)=>"₹"+(minor/100).toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2});
 const date=(v:string|null|undefined)=>v?new Date(v+"T00:00:00").toLocaleDateString("en-IN",{day:"2-digit",month:"long",year:"numeric"}):"—";
 function wrap(text:string,font:any,size:number,width:number){const words=safe(text).split(/\s+/).filter(Boolean);const out:string[]=[];let line="";for(const word of words){const next=line?line+" "+word:word;if(!line||font.widthOfTextAtSize(next,size)<=width)line=next;else{out.push(line);line=word}}if(line)out.push(line);return out}
