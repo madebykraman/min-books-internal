@@ -2,18 +2,11 @@
 
 Internal merged finance workspace.
 
-This repository is the integration target for the capabilities developed independently in:
-
-- `madebykraman/minimical.finance` — financial invariants, organisation identity, secure client portal, document/PDF requirements and historical finance rules.
-- `madebykraman/FinBooksOS` — dark finance workspace UI, document-centric domain, payments, expenses, catalog, reminders, reporting and responsive shell.
-
-The two source repositories remain untouched.
-
 ## Product identity
 
 There is intentionally no product-facing application brand. The selected organisation is the identity shown in the workspace, public documents and client portal.
 
-Global UI typography is Geist Sans with Geist Mono for financial identifiers. Geist is also prepared deterministically for PDF rendering.
+Global UI typography is Geist Sans with Geist Mono for financial identifiers. Geist is prepared deterministically for PDF rendering.
 
 ## Architectural rules
 
@@ -23,25 +16,40 @@ Financial calculations remain deterministic. Issued documents retain immutable s
 
 The invoice editor deliberately has no live preview. Issued-document rendering and PDF generation are separate from data entry.
 
-## Merged surfaces
+## Operational surfaces
 
-- Organisation-aware application shell and switching
-- Dashboard and operational attention queue
-- Invoice ledger and issue flow
-- Organisation-specific invoice numbering
-- Payments and expenses
-- Service catalog
-- Reminder automation foundation
-- Reports
-- Secure password-protected client portal
-- Client invoice detail
-- Account statement PDF
-- Payment receipt PDF
-- Canonical A4 invoice PDF with Geist
-- Responsive/mobile shell
+- Organisation-aware workspace shell and switching
+- Invoice, quote, credit-note and recurring workflows
+- Payments, expenses and allocation-aware balances
+- Client relationship history and projects
+- Reminder rules, scheduled execution and provider dispatch
+- Document delivery queue and provider dispatch
+- GST profile, tax rules, reporting and compliance state
+- Receivables ageing and period-aware cashflow
+- Operational JSON/CSV export
+- Bounded client/master-data import and restore validation
+- Scoped external API keys and v1 invoice/payment/client endpoints
+- Queued integration events and signed webhook delivery
+- Responsive/mobile workspace shell
 - Semantic dark design tokens
 - Empty/loading/error states and operational feedback
 
+## Automation and integration configuration
+
+The application never embeds provider secrets in source control. Runtime configuration is supplied through the deployment environment.
+
+Supported server-side configuration names include:
+
+- CRON_SECRET — protects scheduled automation endpoints.
+- NEXT_PUBLIC_SUPABASE_URL — Supabase project URL.
+- SUPABASE_SERVICE_ROLE_KEY — server-only scheduled-job credential; never expose client-side.
+- DELIVERY_PROVIDER_URL / DELIVERY_PROVIDER_TOKEN / DELIVERY_FROM_EMAIL — optional configured email delivery adapter.
+- FINBOOKS_WEBHOOK_SIGNING_SECRET — signs outbound integration webhook payloads.
+
+Do not place values for these variables in this repository, README, client-side code, screenshots or public issue comments.
+
 ## Verification
 
-GitHub Actions are the authoritative build check for this repository. A successful source write is not treated as production deployment verification.
+GitHub Actions is the authoritative source/build check for this repository. A successful source write is not treated as production deployment verification.
+
+Production Vercel deployment and live Supabase migration state remain separate environment gates.
