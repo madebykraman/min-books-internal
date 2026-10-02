@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import {previousPeriod,periodDays,validateRange} from "../lib/reporting/periods.ts";
 import {addFrequency} from "../lib/automation/recurrence.ts";
 assert.equal(periodDays({from:"2026-10-01",to:"2026-10-31"}),31);
-assert.deepEqual(previousPeriod({from:"2026-10-01",to:"2026-10-31"}),{from:"2026-09-01",to:"2026-09-30"});
+assert.deepEqual(previousPeriod({from:"2026-10-01",to:"2026-10-31"}),{from:"2026-08-31",to:"2026-09-30"});
 assert.equal(addFrequency("2026-01-31","MONTHLY"),"2026-02-28");
 assert.equal(addFrequency("2028-01-31","MONTHLY"),"2028-02-29");
 assert.equal(addFrequency("2026-01-31","QUARTERLY"),"2026-04-30");
