@@ -127,7 +127,7 @@ Gate: user can operate an ongoing client relationship without leaving the worksp
 
 Gate: compliance rules are data-driven and never embedded ad hoc in UI. P2 implementation is complete; live Supabase migration/provider verification remains an environment gate.
 
-### P3 — Reporting, automation and portability — COMPLETE ON MAIN
+### P3 — Reporting, automation and portability — COMPLETE ON MAIN — COMPLETE ON MAIN
 1. [x] Period-aware reporting with previous-period comparison.
 2. [x] Receivables ageing with reproducible as-of dates and credit/payment reconciliation.
 3. [x] Cashflow view by actual transaction date.
