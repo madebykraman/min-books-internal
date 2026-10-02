@@ -1,9 +1,10 @@
 import {notFound} from "next/navigation";
 import {createClient} from "../../../lib/supabase/server";
-import styles from "./page.module.css";\nimport {calculateInvoiceTotals,majorToMinor} from "../../../lib/domain/calculations";
+import styles from "./page.module.css";
+import {calculateInvoiceTotals,majorToMinor} from "../../../lib/domain/calculations";
 
 type InvoiceItem={description?:string;title?:string;qty?:string|number;rate?:string|number;tax?:string|number};
-type InvoicePayload={items?:InvoiceItem[];note?:string;totals?:{subtotalMinor?:string;taxMinor?:string;totalMinor?:string}};
+type InvoicePayload={items?:InvoiceItem[];note?:string;totals?:{subtotalMinor?:string;taxMinor?:string;totalMinor?:string;cgstMinor?:string;sgstMinor?:string;igstMinor?:string};compliance?:{cgstMinor?:string;sgstMinor?:string;igstMinor?:string;taxableValueMinor?:string;supplyType?:string;taxMode?:string}};
 
 const money=(minor?:string|number,currency="INR")=>new Intl.NumberFormat("en-IN",{style:"currency",currency,maximumFractionDigits:2}).format(Number(minor??0)/100);
 
@@ -33,6 +34,8 @@ export default async function PublicInvoice({params}:{params:Promise<{token:stri
   const issuer=snap.issuer??{};
   const recipient=snap.recipient??{};
   const total=payload.totals?.totalMinor??"0";
+  const compliance=(payload.compliance??(version.snapshot as any)?.compliance??{}) as NonNullable<InvoicePayload["compliance"]>;
+  const cgst=compliance.cgstMinor??payload.totals?.cgstMinor; const sgst=compliance.sgstMinor??payload.totals?.sgstMinor; const igst=compliance.igstMinor??payload.totals?.igstMinor;
   return <main className={styles.page}>
     <article className={styles.paper}>
       <header className={styles.paperHeader}>
@@ -55,11 +58,11 @@ export default async function PublicInvoice({params}:{params:Promise<{token:stri
       </table>
       <section className={styles.totals}>
         <div><span>Subtotal</span><b>{money(payload.totals?.subtotalMinor,doc.currency)}</b></div>
-        <div><span>Tax</span><b>{money(payload.totals?.taxMinor,doc.currency)}</b></div>
+        <div><span>Taxable value</span><b>{money(compliance.taxableValueMinor??payload.totals?.subtotalMinor,doc.currency)}</b></div>{cgst&&Number(cgst)>0&&<div><span>CGST</span><b>{money(cgst,doc.currency)}</b></div>}{sgst&&Number(sgst)>0&&<div><span>SGST</span><b>{money(sgst,doc.currency)}</b></div>}{igst&&Number(igst)>0&&<div><span>IGST</span><b>{money(igst,doc.currency)}</b></div>}<div><span>Tax</span><b>{money(payload.totals?.taxMinor,doc.currency)}</b></div>
         <div><span>Total</span><b>{money(total,doc.currency)}</b></div>
       </section>
       {payload.note&&<div><small>PAYMENT TERMS</small><p>{payload.note}</p></div>}
-      <footer className={styles.paperFooter}><span>Immutable document version {version.version}</span></footer>
+      <footer className={styles.paperFooter}><span>Immutable document version {version.version}</span>{compliance.supplyType&&<span>{compliance.supplyType.replaceAll("_"," ")} · {compliance.taxMode==="INCLUSIVE"?"Tax inclusive":"Tax exclusive"}</span>}</footer>
     </article>
   </main>;
 }
