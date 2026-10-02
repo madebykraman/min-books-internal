@@ -1,0 +1,14 @@
+import assert from "node:assert/strict";
+import {calculateIndiaInvoiceTotals,deriveSupplyType,validateGstin,validateHsnSac} from "../lib/domain/india-tax.ts";
+const base={description:"Design services",quantity:"1",unitPriceMinor:100000,taxRate:"18",hsnSac:"9983"};
+const intra=calculateIndiaInvoiceTotals([base],{sellerStateCode:"10",placeOfSupplyStateCode:"10",taxMode:"EXCLUSIVE",registrationType:"REGULAR"});
+assert.equal(intra.cgstMinor,9000n); assert.equal(intra.sgstMinor,9000n); assert.equal(intra.igstMinor,0n); assert.equal(intra.totalMinor,118000n);
+const inter=calculateIndiaInvoiceTotals([base],{sellerStateCode:"10",placeOfSupplyStateCode:"27",taxMode:"EXCLUSIVE",registrationType:"REGULAR"});
+assert.equal(inter.igstMinor,18000n); assert.equal(inter.cgstMinor,0n); assert.equal(inter.sgstMinor,0n);
+const inclusive=calculateIndiaInvoiceTotals([{...base,unitPriceMinor:118000}],{sellerStateCode:"10",placeOfSupplyStateCode:"10",taxMode:"INCLUSIVE",registrationType:"REGULAR"});
+assert.equal(inclusive.taxableMinor,100000n); assert.equal(inclusive.taxMinor,18000n); assert.equal(inclusive.totalMinor,118000n);
+assert.equal(deriveSupplyType({sellerStateCode:"10",placeOfSupplyStateCode:"10",taxMode:"EXCLUSIVE",registrationType:"REGULAR"}),"INTRA_STATE");
+assert.equal(deriveSupplyType({sellerStateCode:"10",placeOfSupplyStateCode:"27",taxMode:"EXCLUSIVE",registrationType:"REGULAR"}),"INTER_STATE");
+assert.equal(validateGstin("10AAACA1234A1Z5"),true); assert.equal(validateGstin("bad"),false);
+assert.equal(validateHsnSac("9983"),true); assert.equal(validateHsnSac("123"),false);
+console.log("india tax invariants: ok");
