@@ -1,0 +1,4 @@
+import crypto from "node:crypto";
+import type {SupabaseClient} from "@supabase/supabase-js";
+export function generateApiKey(){const raw=crypto.randomBytes(32).toString("base64url");const key=`mb_live_${raw}`;return {key,prefix:key.slice(0,16),hash:crypto.createHash("sha256").update(key).digest("hex")}}
+export async function authenticateApiKey(supabase:SupabaseClient,request:Request){const auth=request.headers.get("authorization")||"";const key=auth.startsWith("Bearer ")?auth.slice(7).trim():"";if(!key)return null;const hash=crypto.createHash("sha256").update(key).digest("hex");const {data}=await supabase.from("api_keys").select("id,workspace_id,name").eq("key_hash",hash).eq("enabled",true).is("revoked_at",null).maybeSingle();if(!data)return null;await supabase.from("api_keys").update({last_used_at:new Date().toISOString()}).eq("id",data.id);return data}
