@@ -8,6 +8,7 @@ function decimalToScaled(value:number|string,scale=SCALE){
  if(!/^\+?\d+(?:\.\d+)?$/.test(s))throw new Error("Invalid decimal");
  const clean=s.replace(/^\+/,"");
  const [whole,fraction=""]=clean.split(".");
+ if(fraction.length>6)throw new Error("Invalid decimal");
  const frac=(fraction+"000000").slice(0,6);
  return BigInt(whole)*scale+BigInt(frac);
 }
