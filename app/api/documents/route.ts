@@ -9,8 +9,10 @@ export async function GET(request:Request){
   const params=new URL(request.url).searchParams;
   const workspaceId=params.get("workspaceId");
   const type=params.get("type");
+  const from=params.get("from");
+  const to=params.get("to");
   if(type&&type!=="INVOICE"&&type!=="QUOTE")return NextResponse.json({error:"Invalid document type"},{status:400});
   if(!workspaceId)return NextResponse.json({error:"Workspace is required"},{status:400});
-  try{return NextResponse.json({data:await getDocuments(workspaceId,type as "INVOICE"|"QUOTE"|undefined)})}
+  try{return NextResponse.json({data:await getDocuments(workspaceId,type as "INVOICE"|"QUOTE"|undefined,from,to)})}
   catch(error){return NextResponse.json({error:error instanceof Error?error.message:"Unable to load invoices"},{status:500})}
 }
