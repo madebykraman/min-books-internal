@@ -1,0 +1,2 @@
+import {NextResponse} from "next/server";import {authenticateApiKey} from "../../../../lib/api/api-key";
+export async function GET(request:Request){const a=await authenticateApiKey(request);if(!a)return NextResponse.json({error:"Invalid API key"},{status:401});return NextResponse.json({data:{ok:true,workspaceId:a.workspaceId,apiVersion:"v1"}})}
