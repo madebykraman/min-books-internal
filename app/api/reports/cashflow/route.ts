@@ -1,0 +1,10 @@
+import {NextResponse} from "next/server";import {createClient} from "../../../../lib/supabase/server";import {isConfirmedPayment} from "../../../../lib/financial/ledger";
+export async function GET(request:Request){
+ const s=await createClient();const {data:{user},error:a}=await s.auth.getUser();if(a||!user)return NextResponse.json({error:"Unauthorized"},{status:401});
+ const q=new URL(request.url).searchParams,w=q.get("workspaceId"),from=q.get("from"),to=q.get("to");if(!w||!from||!to)return NextResponse.json({error:"workspaceId, from and to are required"},{status:400});
+ const [p,e]=await Promise.all([s.from("payments").select("payment_date,amount_minor,status").eq("workspace_id",w).gte("payment_date",from).lte("payment_date",to),s.from("expenses").select("expense_date,amount_minor,status,category").eq("workspace_id",w).gte("expense_date",from).lte("expense_date",to)]);
+ if(p.error||e.error)return NextResponse.json({error:p.error?.message||e.error?.message},{status:400});
+ const map=new Map<string,{inflowMinor:number;outflowMinor:number}>();for(const x of p.data??[])if(isConfirmedPayment(x as any)){const m=map.get(x.payment_date)||{inflowMinor:0,outflowMinor:0};m.inflowMinor+=Number(x.amount_minor);map.set(x.payment_date,m)}for(const x of e.data??[])if(x.status!=="VOID"){const m=map.get(x.expense_date)||{inflowMinor:0,outflowMinor:0};m.outflowMinor+=Number(x.amount_minor);map.set(x.expense_date,m)}
+ const rows=[...map.entries()].sort(([a],[b])=>a.localeCompare(b)).map(([date,v])=>({...v,date,netMinor:v.inflowMinor-v.outflowMinor}));const totals=rows.reduce((a,r)=>({inflowMinor:a.inflowMinor+r.inflowMinor,outflowMinor:a.outflowMinor+r.outflowMinor,netMinor:a.netMinor+r.netMinor}),{inflowMinor:0,outflowMinor:0,netMinor:0});
+ return NextResponse.json({period:{from,to},rows,totals});
+}
