@@ -18,4 +18,5 @@ jobs:
       - run: npm run test:calculations
       - run: npm run test:ledger
       - run: npm run test:india-tax
+      - run: npm run typecheck
       - run: npm run build
