@@ -1,12 +1,14 @@
 import {createClient} from "../supabase/server";
 
-export async function getDocuments(workspaceId:string,type?:"INVOICE"|"QUOTE"){
+export async function getDocuments(workspaceId:string,type?:"INVOICE"|"QUOTE",from?:string|null,to?:string|null){
   const supabase=await createClient();
   const {data,error}=await supabase
     .from("documents")
     .select("id,client_id,project_id,document_number,type,status,issue_date,due_date,currency,current_version,updated_at,draft_payload,clients(name,email)")
     .eq("workspace_id",workspaceId)
     .match(type?{type}: {})
+    .gte("issue_date",from||"1900-01-01")
+    .lte("issue_date",to||"2999-12-31")
     .order("updated_at",{ascending:false});
   if(error) throw new Error(error.message);
   return data??[];
