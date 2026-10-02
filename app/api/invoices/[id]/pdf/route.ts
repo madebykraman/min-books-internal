@@ -35,6 +35,7 @@ export async function GET(_request:NextRequest,{params}:{params:Promise<{id:stri
   const payload:any=immutableVersion?.payload??doc.draft_payload??{};
   const items=Array.isArray(payload.items)?payload.items:(Array.isArray(snapshot.lines)?snapshot.lines:[]);
   const totals=payload.totals??{};
+  const compliance:any=payload.compliance??snapshot.compliance??{};
 
   const pdf=await PDFDocument.create();pdf.registerFontkit(fontkit);
   const regular=await pdf.embedFont(await readFile(join(process.cwd(),"public","fonts","Geist-Regular.ttf")),{subset:true});
@@ -69,7 +70,7 @@ export async function GET(_request:NextRequest,{params}:{params:Promise<{id:stri
   if(y<170){drawFooter();page=pdf.addPage([PAGE.width,PAGE.height]);y=PAGE.height-70}
   page.drawLine({start:{x:48,y:y+8},end:{x:547,y:y+8},thickness:.7,color:BLACK});y-=12;
   right(page,"SUBTOTAL",450,y,semibold,8,MUTED);right(page,money(Number(totals.subtotalMinor??0)),547,y,mono,9);y-=16;
-  right(page,"TAX",450,y,semibold,8,MUTED);right(page,money(Number(totals.taxMinor??0)),547,y,mono,9);y-=20;
+  if(Number(compliance.cgstMinor??0)>0){right(page,"CGST",450,y,semibold,8,MUTED);right(page,money(Number(compliance.cgstMinor)),547,y,mono,9);y-=14;}if(Number(compliance.sgstMinor??0)>0){right(page,"SGST",450,y,semibold,8,MUTED);right(page,money(Number(compliance.sgstMinor)),547,y,mono,9);y-=14;}if(Number(compliance.igstMinor??0)>0){right(page,"IGST",450,y,semibold,8,MUTED);right(page,money(Number(compliance.igstMinor)),547,y,mono,9);y-=14;}right(page,"TAX",450,y,semibold,8,MUTED);right(page,money(Number(totals.taxMinor??0)),547,y,mono,9);y-=20;
   right(page,"TOTAL",450,y,semibold,9);right(page,money(Number(totals.totalMinor??0)),547,y,mono,11);y-=32;
   if(payload.note){text(page,"PAYMENT TERMS",48,y,semibold,8,MUTED);wrap(payload.note,regular,8.5,330).slice(0,3).forEach((v:string,i:number)=>text(page,v,48,y-14-i*11,regular,8.5))}
   drawFooter();
