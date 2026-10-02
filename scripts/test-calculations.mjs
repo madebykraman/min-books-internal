@@ -4,7 +4,9 @@ import {calculateInvoiceTotals,majorToMinor,minorToMajorString,validateCalculati
 assert.deepEqual(calculateInvoiceTotals([{quantity:"2",unitPriceMinor:12500,taxRate:"18"}]),{subtotalMinor:25000n,taxMinor:4500n,totalMinor:29500n});
 assert.deepEqual(calculateInvoiceTotals([{quantity:"0.333333",unitPriceMinor:10000,taxRate:"0"}]),{subtotalMinor:3333n,taxMinor:0n,totalMinor:3333n});
 assert.deepEqual(calculateInvoiceTotals([{quantity:"1",unitPriceMinor:10001,taxRate:"2.5"}]),{subtotalMinor:10001n,taxMinor:250n,totalMinor:10251n});
-assert.equal(minorToMajorString(29500n),"295.00");\nassert.equal(majorToMinor("2500"),250000n);\nassert.equal(majorToMinor("2500.005"),250001n);
+assert.equal(minorToMajorString(29500n),"295.00");
+assert.equal(majorToMinor("2500"),250000n);
+assert.equal(majorToMinor("2500.005"),250001n);
 assert.equal(minorToMajorString(-125n),"-1.25");
 
 assert.throws(()=>validateCalculationLine({quantity:"0",unitPriceMinor:100,taxRate:"0"}),/quantity must be greater/);
