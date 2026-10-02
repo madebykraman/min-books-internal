@@ -1,5 +1,5 @@
 import {NextResponse} from "next/server";
-import {createClient} from "../../../lib/supabase/server";
+import {queueIntegrationEvent} from "../../../lib/integrations/events";import {createClient} from "../../../lib/supabase/server";
 
 export async function GET(request:Request){
   const supabase=await createClient();
@@ -46,5 +46,5 @@ export async function POST(request:Request){
     payment_notes:notes
   });
   if(error||!data)return NextResponse.json({error:error?.message||"Unable to record payment"},{status:400});
-  return NextResponse.json({data});
+  await queueIntegrationEvent(supabase,{workspaceId:String(data.workspace_id??""),eventType:"PAYMENT_RECORDED",aggregateType:"payment",aggregateId:data.id,payload:{amountMinor:amount,paymentDate}}).catch(()=>{});return NextResponse.json({data});
 }
