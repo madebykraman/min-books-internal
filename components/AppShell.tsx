@@ -1,6 +1,6 @@
 "use client";
 
-import {Bell,ChevronDown,FileBarChart2,LayoutDashboard,ReceiptText,Settings2,Users,WalletCards,CircleDollarSign,PackageOpen,Workflow,Check,FileCheck2,FolderKanban,FileMinus,CalendarClock,BellRing,Landmark} from "lucide-react";
+import {Bell,ChevronDown,FileBarChart2,LayoutDashboard,ReceiptText,Settings2,Users,WalletCards,CircleDollarSign,PackageOpen,Workflow,Check,FileCheck2,FolderKanban,FileMinus,CalendarClock,BellRing,Landmark,Clock3,Activity,PlugZap,ArrowDownToLine} from "lucide-react";
 import Link from "next/link";
 import {usePathname} from "next/navigation";
 import {useEffect,useMemo,useState} from "react";
@@ -21,6 +21,10 @@ const nav=[
   ["Catalog","/catalog",PackageOpen],
   ["Automations","/automations",Workflow],
   ["Reports","/reports",FileBarChart2],
+  ["Receivables","/receivables",Clock3],
+  ["Cashflow","/cashflow",Activity],
+  ["Integrations","/integrations",PlugZap],
+  ["Import / Export","/import-export",ArrowDownToLine],
   ["GST & compliance","/gst",Landmark],
 ] as const;
 
