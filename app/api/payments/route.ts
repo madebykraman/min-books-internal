@@ -46,5 +46,5 @@ export async function POST(request:Request){
     payment_notes:notes
   });
   if(error||!data)return NextResponse.json({error:error?.message||"Unable to record payment"},{status:400});
-  await queueIntegrationEvent(supabase,{workspaceId:String(data.workspace_id??""),eventType:"PAYMENT_RECORDED",aggregateType:"payment",aggregateId:data.id,payload:{amountMinor:amount,paymentDate}}).catch(()=>{});return NextResponse.json({data});
+  return NextResponse.json({data});
 }
